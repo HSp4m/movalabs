@@ -4,3 +4,5 @@ backup.py
 heuristic.py
 processWatcher.py
 .vscode
+settings/settings.ini
+
