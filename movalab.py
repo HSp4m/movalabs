@@ -173,7 +173,7 @@ def list_files(dir, self, tray):
                     
                         
                         for line in hashFile:
-                            #print(line)
+                            
                             for hashes in line.split():
                                 
                                 if hashes == hash and file_name not in historyFilesDetected:
@@ -186,7 +186,9 @@ def list_files(dir, self, tray):
                                     self.Tabs.setCurrentIndex(3)
                                     
                                     historyDetections.insert(0,f"{fileR}: UDS:DangerousObject.HashList")
-                    
+                                else:
+                                    continue
+                                
                     if matchesFolder != []:
                         
                         detected = 1;
