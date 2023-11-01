@@ -64,9 +64,12 @@ def scaninfo(self):
     
     print(f"[!] Detections: {__fileDetections}")
     for y in historyDetections:
-        __fileArray = os.path.split(y)
+        __fileArray = y.split(": ")
+        __fileArray = os.path.split(__fileArray[0])
         __filename = __fileArray[1].split(":")
+
         __filePath = __fileArray[0] + "/" + __filename[0]
+    
 
         __fileThreat = y.split(": ")[1]
         
@@ -224,7 +227,7 @@ def list_files(dir, self, tray):
                                     
                                     
                         
-                        print(f"[*] Malware Found {matchesFolder}. \n[/] Filename: {file_name}")
+                        print(f"[*] Malware Found [{threat}]. \n[/] Filename: {file_name}")
                 else:
                     continue 
     

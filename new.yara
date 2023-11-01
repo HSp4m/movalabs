@@ -765,7 +765,7 @@ rule potential_python_keylogger  {
     meta:
         author          = "Movalabs"
 
-        threat          = "Potential:PythonKeylogger"
+        threat          = "BehavesLike:W32/PyKeylogger"
         namespace       = "potential_python_keylogger"
 
     strings:
@@ -790,7 +790,7 @@ rule eicar_av_test {
 
     meta:
         description             = "This is a standard AV test, intended to verify that BinaryAlert is working correctly."
-        threat                  = "Mal:EicarTestFile"
+        threat                  = "not-a-virus:EicarTestFile"
         author                  = "Austin Byers | Airbnb CSIRT"
         reference               = "http://www.eicar.org/86-0-Intended-use.html"
         Threat_level            = "5"
@@ -812,7 +812,7 @@ rule eicar_substring {
 
     meta:
         description = "Standard AV test, checking for an EICAR substring"
-        threat = "Mal:EicarTestFile"
+        threat = "not-a-virus:EicarTestFile"
         author = "Austin Byers | Airbnb CSIRT"
         Threat_level = "5"
         namespace = "eicar_substring"
@@ -831,7 +831,7 @@ rule potential_python__file_encryption {
     */
     meta:
         description = "Python file encryption substring detection"
-        threat = "Potential:PythonRansomware [Generic]"
+        threat = "BehavesLike:W32/PyRansomware.Gen"
         author = "Movalabs"
         Threat_level = "5"
         namespace = "potential_python__file_encryption"
@@ -875,7 +875,7 @@ rule PE_File_pyinstaller
         description = "Detect PE file produced by pyinstaller"
         reference = "https://isc.sans.edu/diary/21057"
         namespace = "PE_File_pyinstaller"
-        threat = "not-a-virus:PYInstaller:Generic"
+        threat = "not-a-virus:PYInstaller.Gen"
 
     strings:
 
@@ -911,7 +911,7 @@ rule MachO_File_pyinstaller
         author = "KatsuragiCSL (https://katsuragicsl.github.io)"
         description = "Detect Mach-O file produced by pyinstaller"
         namespace = "MachO_File_pyinstaller"
-        threat = "Mal:PYInstaller.Mach-O"
+        threat = "not-a-virus:PYInstaller.Mach-O"
 
     strings:
         $a = "pyi-runtime-tmpdir"
@@ -932,7 +932,7 @@ rule Petya_Ransomware {
 		date = "2016-03-24"
 		hash = "26b4699a7b9eeb16e76305d843d4ab05e94d43f3201436927e13b3ebafa90739"
         namespace = "Petya_Ransomware"
-        threat = "Ransom:Petya.Ransomware [Trj]"
+        threat = "Ransom:W32/Petya.Trj"
 
 
 	strings:
@@ -957,7 +957,7 @@ rule Ransom_Petya {
         author = "CCN-CERT"
         version = "1.0"
         namespace = "Petya_Ransomware"
-        threat = "Win32:Ransom.Petya [Trj]"
+        threat = "Ransom:W32/Petya.Trj"
 
     strings:
 
@@ -983,7 +983,7 @@ rule Win32_Ransomware_Petya : tc_detection malicious
         malware             = "PETYA"
         description         = "Yara rule that detects Petya ransomware."
         namespace = "Win32_Ransomware_Petya"
-        threat = "Ransom:Win32.Petya [Trj]"
+        threat = "Ransom:W32/Petya.Trj"
 
         tc_detection_type   = "Ransomware"
         tc_detection_name   = "Petya"
@@ -1173,7 +1173,7 @@ rule INDICATOR_SUSPICIOUS_GENRansomware {
         description = "detects command variations typically used by ransomware"
         author = "ditekSHen"
         namespace = "INDICATOR_SUSPICIOUS_GENRansomware"
-        threat = "BehavesLike.GenRansomware"
+        threat = "BehavesLike:GenRansomware"
 
 
     strings:
@@ -1212,7 +1212,8 @@ rule WannaCry_Ransomware {
       date = "2017-05-12"
       hash1 = "ed01ebfbc9eb5bbea545af4d01bf5f1071661840480439c6e5babe8e080e41aa"
       namespace = "WannaCry_Ransomware"
-      threat = "Trojan.Ransom.WannaCryptor.A"
+      threat = "Ransom:W32/WannaCryptor.Trj.A"
+      
 
    strings:
 
@@ -1257,7 +1258,7 @@ rule WannaCry_Ransomware_Gen {
       hash2 = "8e5b5841a3fe81cade259ce2a678ccb4451725bba71f6662d0cc1f08148da8df"
       hash3 = "4384bf4530fb2e35449a8e01c7e0ad94e3a25811ba94f7847c1e6612bbb45359"
       namespace = "WannaCry_Ransomware_Gen"
-      threat = "Trojan.Ransom.WannaCryptor"
+      threat = "Ransom:W32/WannaCryptor.Trj.Gen"
 
 
    strings:
@@ -1284,7 +1285,7 @@ rule WannCry_m_vbs {
       date = "2017-05-12"
       hash1 = "51432d3196d9b78bdc9867a77d601caffd4adaa66dcac944a5ba0b3112bbea3b"
       namespace = "WannCry_m_vbs"
-      threat = "Trojan-Ransom.BAT"
+      threat = "Ransom:VBS.Trj"
 
    strings:
 
@@ -1308,7 +1309,7 @@ rule WannCry_BAT {
       date = "2017-05-12"
       hash1 = "f01b7f52e3cb64f01ddc248eb6ae871775ef7cb4297eba5d230d0345af9a5077"
       namespace = "WannCry_BAT"
-      threat = "BAT/Trojan-Ransom:Wannacry"
+      threat = "Ransom:WannacryBat.Trojan"
       
 
    strings:
@@ -1334,7 +1335,7 @@ rule WannaCry_RansomNote {
       date = "2017-05-12"
       hash1 = "4a25d98c121bb3bd5b54e0b6a5348f7b09966bffeec30776e5a731813f05d49e"
       namespace = "WannaCry_RansomNote"
-      threat = "Trojan.RansomNote"
+      threat = "Trojan:Ransomnote"
 
 
    strings:
@@ -1361,7 +1362,7 @@ rule APT_lazaruswannacry {
       hash = "9c7c7149387a1c79679a87dd1ba755bc"
       hash = "ac21c8ad899727137c4b94458d7aa8d8"
       namespace = "APT_lazaruswannacry"
-      threat = "Trojan.Win32.WannaCryptor"
+      threat = "Trojan:W32/WannaCryptor"
 
 
    strings:
