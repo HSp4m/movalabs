@@ -14,7 +14,7 @@ import json
 
 fernetKey = b'1np9HsC0fRY40-PADY_EylGu1RJfNANVeK_3j80yzpo='
 
-CVERSION = "0.0.3"
+AppVersion__ = "1.0.3"
 fernet = Fernet(fernetKey)
 
 current_dir = os.path.dirname(__file__)
@@ -1284,7 +1284,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
             msg.setWindowIcon(QtGui.QIcon(current_dir + "\\res\\ico\\AntiVirus_ico.svg"))
                         
                             # setting message for Message Box 
-            msg.setInformativeText(f"No update avaliable. \nCurrent Version: {CVERSION}")
+            msg.setInformativeText(f"No update avaliable. \nCurrent Version: {AppVersion__}")
             msg.setText("Updater") 
                             
                             # setting Message box window title 
@@ -1531,7 +1531,7 @@ def Update():
     
 def __modules__Verify():
     __missing = 0
-    
+    print(f"[*] Current version: {AppVersion__}")
     if os.path.isfile(current_dir + "\\new.yara"):
         
         print("[*] Yara: OK")
