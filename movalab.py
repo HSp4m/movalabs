@@ -151,7 +151,7 @@ def list_files(dir, self, tray):
     
     print(__totalFiles)
     for root, dirs, files in os.walk(dir):
-        #__totalFiles += len(files);
+        
         
         try:
             total += 1
