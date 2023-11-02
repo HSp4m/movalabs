@@ -11,10 +11,21 @@ import hashlib
 from cryptography.fernet import Fernet
 from datetime import datetime
 import json
+import urllib.request
+
+import sqlite3
+db_file = "./hash/HashDB"
+hashes = sqlite3.connect(db_file)
+db_cursor = hashes.cursor()
+
+__VersionGIT = "https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini"
+__Page = urllib.request.urlopen(__VersionGIT)
+LatestVersion__ = f"{__Page.read()}".replace("b","").replace("'","").replace("n","").replace("\\","")
+AppVersion__ = "1.0.4"
 
 fernetKey = b'1np9HsC0fRY40-PADY_EylGu1RJfNANVeK_3j80yzpo='
 
-AppVersion__ = "1.0.3"
+
 fernet = Fernet(fernetKey)
 
 current_dir = os.path.dirname(__file__)
@@ -172,6 +183,18 @@ def list_files(dir, self, tray):
                     
                     hash = hashlib.md5(file_content).hexdigest()
                     
+                    __InDB = db_cursor.execute(f"SELECT hash, name FROM HashDB WHERE hash = '{hash}'").fetchone()
+                    
+                    if isinstance(__InDB, tuple) and file_name not in historyFilesDetected:
+                        print(f"[*] {file_name} found in [HashDB] ({__InDB[1]})")
+                        historyFilesDetected.append(file_name)
+                                    
+                                    
+                        self.resultWidget.insertItem(fulltotal,f"{file_name} ({__InDB[1]})")
+                        self.Tabs.setCurrentIndex(3)
+                                    
+                        historyDetections.insert(0,f"{fileR}: {__InDB[1]}")
+                        
                     with open(current_dir + "\\hash\\md5.txt", "r") as hashFile:
                     
                         
@@ -197,8 +220,6 @@ def list_files(dir, self, tray):
                         detected = 1;
                         self.Tabs.setCurrentIndex(3)
                         for match in matchesFolder:
-                            #for rule in rules:
-                                #namespace = rule.meta.get('namespace', '?')
                                 
                                 
                             threat = match.meta.get('threat', "?")
@@ -722,7 +743,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                     # Creating the options 
             menu = QtWidgets.QMenu() 
             update = QtWidgets.QAction("Update") 
-            update.triggered.connect(lambda: Update())
+
             menu.addAction(update) 
                     
                     
@@ -1279,24 +1300,48 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                     config.write(configf)
         
         def verifyupdates(self):
-            msg = QtWidgets.QMessageBox() 
-            msg.setIcon(QtWidgets.QMessageBox.Information) 
-            msg.setWindowIcon(QtGui.QIcon(current_dir + "\\res\\ico\\AntiVirus_ico.svg"))
-                        
-                            # setting message for Message Box 
-            msg.setInformativeText(f"No update avaliable. \nCurrent Version: {AppVersion__}")
-            msg.setText("Updater") 
-                            
-                            # setting Message box window title 
-            msg.setWindowTitle("Movalabs") 
-                            
-                            # declaring buttons on Message Box 
-            msg.setStandardButtons(QtWidgets.QMessageBox.Ok) 
-                            
-                            # start the app 
-                        
-            retval = msg.exec_()
             
+            __UpdaterResult = update();
+            
+            if __UpdaterResult == False:
+            
+                msg = QtWidgets.QMessageBox() 
+                msg.setIcon(QtWidgets.QMessageBox.Information) 
+                msg.setWindowIcon(QtGui.QIcon(current_dir + "\\res\\ico\\AntiVirus_ico.svg"))
+                            
+                                # setting message for Message Box 
+                msg.setInformativeText(f"No update avaliable. \nCurrent Version: {AppVersion__}")
+                msg.setText("Updater") 
+                                
+                                # setting Message box window title 
+                msg.setWindowTitle("Movalabs") 
+                                
+                                # declaring buttons on Message Box 
+                msg.setStandardButtons(QtWidgets.QMessageBox.Ok) 
+                                
+                                # start the app 
+                            
+                retval = msg.exec_()
+            
+            else:
+                
+                msg = QtWidgets.QMessageBox() 
+                msg.setIcon(QtWidgets.QMessageBox.Warning) 
+                msg.setWindowIcon(QtGui.QIcon(current_dir + "\\res\\ico\\AntiVirus_ico.svg"))
+                            
+                                # setting message for Message Box 
+                msg.setInformativeText(f"Update avaliable. \nLatest Version: {LatestVersion__}")
+                msg.setText("Updater") 
+                                
+                                # setting Message box window title 
+                msg.setWindowTitle("Movalabs") 
+                                
+                                # declaring buttons on Message Box 
+                msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No) 
+                                
+                                # start the app 
+                            
+                retval = msg.exec_()
            
         def saveSettings(self):
             config.set('-settings-', 'vrapikey', str(self.VirusTotalApiKey.text()))
@@ -1320,7 +1365,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                     # Creating the options 
             menu = QtWidgets.QMenu() 
             update = QtWidgets.QAction("Update") 
-            update.triggered.connect(lambda: Update())
+
             menu.addAction(update) 
                     
                     
@@ -1471,67 +1516,33 @@ def exitM():
             print("Canceled.")
             pass
         
-def Update():
-        msg = QtWidgets.QMessageBox() 
-        msg.setIcon(QtWidgets.QMessageBox.Information) 
-        msg.setWindowIcon(QtGui.QIcon(current_dir + '\\res\\ico\\AntiVirus_ico.svg'))
-                
-                                
-                                    # setting message for Message Box 
-                
-                                    
-                                    # setting Message box window title 
-        msg.setWindowTitle("Movalabs") 
-                                    # setting message for Message Box 
-        msg.setInformativeText("Update now?")
-        msg.setText("Update avaliable") 
-                                    
-                                    # setting Message box window title 
-                
-                                    
-                                    # declaring buttons on Message Box 
-        msg.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.No) 
-                                    
-                                    # start the app 
-                                
-        retval = msg.exec_()
-                
-        if retval == 1024:
-                    
-            msg = QtWidgets.QMessageBox() 
-            msg.setIcon(QtWidgets.QMessageBox.Critical) 
-            msg.setWindowIcon(QtGui.QIcon(current_dir + '\\res\\ico\\AntiVirus_ico.svg'))
-                    
-                                    
-                                        # setting message for Message Box 
-                    
-                                        
-                                        # setting Message box window title 
-            msg.setWindowTitle("Movalabs") 
-                                        # setting message for Message Box 
-            msg.setInformativeText("Update server not found. Try again leter.")
-            msg.setText("ERROR") 
-                                        
-                                        # setting Message box window title 
-                    
-                                        
-                                        # declaring buttons on Message Box 
-            msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-                    
-            retval = msg.exec_()
-                    
-        elif retval == 65536:
-                            
-            print(f"No [{retval}]")
-                        
-        else:
-                        
-            print(f"? [{retval}]")
+
+def update():
     
+    __VersionGIT = "https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini"
+    __Page = urllib.request.urlopen(__VersionGIT)
+    LatestVersion__ = f"{__Page.read()}".replace("b","").replace("'","").replace("n","").replace("\\","")
+
+    if AppVersion__ < LatestVersion__ or AppVersion__ > LatestVersion__:
+        return True;
+        
+    else:
+        return False;
+        
+                  
     
 def __modules__Verify():
     __missing = 0
-    print(f"[*] Current version: {AppVersion__}")
+    
+    __updaterResult = update()
+    
+    if __updaterResult == True:
+        print(f"[-] Current Version: {AppVersion__} (UPDATE AVALIABLE)")
+        __missing += 1
+    
+    else:
+        print(f"[+] Current Version: {AppVersion__}")
+    
     if os.path.isfile(current_dir + "\\new.yara"):
         
         print("[*] Yara: OK")

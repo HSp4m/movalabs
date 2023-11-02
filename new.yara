@@ -7,7 +7,7 @@ rule INDICATOR_SUSPICIOUS_EXE_ASEP_REG_Reverse {
     meta:
         author = "ditekSHen"
         description = "Detects file containing reversed ASEP Autorun registry keys"
-        threat = "UDS:ASEP.Autorun"
+        threat = "UDS:ASEP/Autorun"
     strings:
         $s1 = "nuR\\noisreVtnerruC\\swodniW\\tfosorciM" ascii wide nocase
         $s2 = "ecnOnuR\\noisreVtnerruC\\swodniW\\tfosorciM" ascii wide nocase
@@ -41,7 +41,7 @@ rule DotNet_EmbeddedPE
     date = "2021-01-18"
     description = "This detects a PE embedded in a .NET executable."
     namespace = "DotNet_EmbeddedPE"
-    threat = "SUSPECIOUS:DotNET.Loader"
+    threat = "not-a-virus:DotNET/Loader"
 
 
    condition:
@@ -60,7 +60,7 @@ rule agent_tesla
         version = "1.0"
         reference = "https://thisissecurity.stormshield.com/2018/01/12/agent-tesla-campaign/"
         namespace = "agent_tesla"
-        threat = "Tesla:Agent"
+        threat = "Trojan:W32/TeslaAgent"
 
     strings:
 
@@ -83,7 +83,7 @@ rule Agent_Tesla : Agent_Tesla
         author = "LastLine"
         reference = "https://www.lastline.com/labsblog/surge-of-agent-tesla-threat-report/"
         namespace = "Agent_Tesla"
-        threat = "Agent:Tesla"
+        threat = "Trojan:W32/TeslaAgent"
 
 
     strings:
@@ -105,7 +105,7 @@ rule AgentTesla
         created = "05/18/2018"
         TLP = "WHITE"
         namespace = "AgentTesla"
-        threat = "Agent.Tesla"
+        threat = "Trojan:W32/TeslaAgent"
 
     strings:
 
@@ -197,7 +197,7 @@ rule Win32_Downloader_dlMarlboro : tc_detection malicious
         tc_detection_name   = "dlMarlboro"
         tc_detection_factor = 3
         namespace           = "Win32_Downloader_dlMarlboro"
-        threat              = "Trojan:dlMarlboro.Downloader"
+        threat              = "Trojan:W32/DLMarlboro.Downloader"
 
     strings:
 
@@ -280,7 +280,7 @@ rule Windows_PUP_MediaArena_a9e3b4a1 {
         license = "Elastic License v2"
         os = "windows"
         namespace = "Windows_PUP_MediaArena_a9e3b4a1"
-        threat = "PUP:MediaArena"
+        threat = "PUP:W32/MediaArena"
 
     strings:
 
@@ -314,7 +314,7 @@ rule Windows_PUP_Generic_198b73aa {
         license = "Elastic License v2"
         os = "windows"
         namespace = "Windows_PUP_Generic_198b73aa"
-        threat = "PUP:GenericWin"
+        threat = "PUP:W32/Generic"
 
     strings:
 
@@ -346,7 +346,7 @@ rule Windows_Hacktool_CpuLocker_73b41444 {
         license = "Elastic License v2"
         os = "windows"
         namespace = "Windows_Hacktool_CpuLocker_73b41444"
-        threat = "Hacktool:CpuLocker.Maldrv"
+        threat = "Hacktool:W32/CpuLocker.Maldrv"
 
     strings:
 
@@ -374,7 +374,7 @@ rule Windows_Exploit_Log4j_dbac7698 {
         license = "Elastic License v2"
         os = "windows"
         namespace = "Windows_Exploit_Log4j_dbac7698"
-        threat = "EXPLOIT:Win.Log4j"
+        threat = "Exploit:W32/Log4j"
 
     strings:
 
@@ -409,7 +409,7 @@ rule Multi_Ransomware_Luna_8614d3d7 {
         license = "Elastic License v2"
         os = "multi"
         namespace = "Multi_Ransomware_Luna_8614d3d7"
-        threat = "MULTI:Ransom.Luna"
+        threat = "Ransom:MULTI/Luna"
 
     strings:
 
@@ -445,7 +445,7 @@ rule Windows_Trojan_SnakeKeylogger_af3faa65 {
         license = "Elastic License v2"
         os = "windows"
         namespace = "Windows_Trojan_SnakeKeylogger_af3faa65"
-        threat = "Trojan:SnakeKeylogger"
+        threat = "Trojan:W32/Snake.Keylogger"
 
     strings:
 
@@ -488,7 +488,7 @@ rule Windows_Trojan_XtremeRAT_cd5b60be {
         license = "Elastic License v2"
         os = "windows"
         namespace = "Windows_Trojan_XtremeRAT_cd5b60be"
-        threat = "Win32:Nimnul.a"
+        threat = "Trojan:W32/Nimnul"
 
     strings:
 
@@ -527,7 +527,7 @@ rule Windows_Trojan_Zeus_e51c60d7 {
         license = "Elastic License v2"
         os = "windows"
         namespace = "Windows_Trojan_Zeus_e51c60d7"
-        threat = "Trojan:Zeus.Agent"
+        threat = "Trojan:W32/Zeus.A"
         
     strings:
 
@@ -558,7 +558,7 @@ rule Windows_Ransomware_WannaCry_d9855102 {
         license = "Elastic License v2"
         os = "windows"
         namespace = "Windows_Ransomware_WannaCry_d9855102"
-        threat = "Ransom:Wannacry"
+        threat = "Ransom:W32/Wannacry"
 
     strings:
 
@@ -594,7 +594,7 @@ rule Windows_Hacktool_CheatEngine_fedac96d {
         license = "Elastic License v2"
         os = "windows"
         namespace = "Windows_Hacktool_CheatEngine_fedac96d"
-        threat = "PUA:Hacktool.CheatEngine"
+        threat = "PUA:W32/CheatEngine.Hacktool"
 
 
     strings:
@@ -619,7 +619,7 @@ rule Win32_Ransomware_CryptoLocker : tc_detection malicious
         malware             = "CRYPTOLOCKER"
         description         = "Yara rule that detects CryptoLocker ransomware."
         namespace           = "Win32_Ransomware_CryptoLocker"
-        threat              = "YARA:Win32.CryptoLocker"
+        threat              = "Ransom:W32/CryptoLocker"
         tc_detection_type   = "Ransomware"
         tc_detection_name   = "CryptoLocker"
         tc_detection_factor = 5
@@ -1046,7 +1046,7 @@ rule Win32_Ransomware_WannaCry : tc_detection malicious
         tc_detection_name   = "WannaCry"
         tc_detection_factor = 5
         namespace = "Win32_Ransomware_WannaCry"
-        threat = "Ransom.WannaCrypt"
+        threat = "Ransom:W32/WannaCrypt"
 
     strings:
         $main_1 = {
