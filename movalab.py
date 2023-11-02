@@ -220,6 +220,7 @@ def list_files(dir, self, tray):
                         detected = 1;
                         self.Tabs.setCurrentIndex(3)
                         for match in matchesFolder:
+
                                 
                                 
                             threat = match.meta.get('threat', "?")
