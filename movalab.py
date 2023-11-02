@@ -1524,7 +1524,7 @@ def update():
     __Page = urllib.request.urlopen(__VersionGIT)
     LatestVersion__ = f"{__Page.read()}".replace("b","").replace("'","").replace("n","").replace("\\","")
 
-    if AppVersion__ < LatestVersion__ or AppVersion__ > LatestVersion__:
+    if AppVersion__ < LatestVersion__:
         return True;
         
     else:
