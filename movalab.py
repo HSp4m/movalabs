@@ -10,7 +10,6 @@ from virustotal_python import Virustotal
 import hashlib
 from cryptography.fernet import Fernet
 from datetime import datetime
-import json
 import urllib.request
 
 import sqlite3
@@ -20,12 +19,20 @@ db_cursor = hashes.cursor()
 
 
 
+try:
 
-__VersionGIT = "https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini"
-__Page = urllib.request.urlopen(__VersionGIT)
-LatestVersion__ = f"{__Page.read()}".replace("b","").replace("'","").replace("n","").replace("\\","")
-AppVersion__ = "1.0.5"
-
+    __VersionGIT = "https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini"
+    __Page = urllib.request.urlopen(__VersionGIT)
+    LatestVersion__ = f"{__Page.read()}".replace("b","").replace("'","").replace("n","").replace("\\","")
+    AppVersion__ = "1.0.5"
+    
+except:
+    
+    print()
+    print("[-] A error ocurred with github request.\n[-] Verify your internet connection and try again.\n[!] If this error persist reinstall the app on github (https://github.com/HSp4m/movalabs)")
+    print()
+    exit()
+    
 fernetKey = b'1np9HsC0fRY40-PADY_EylGu1RJfNANVeK_3j80yzpo='
 
 
@@ -168,7 +175,7 @@ def list_files(dir, self, tray):
     __totalFiles =sum(len(files) for _, _, files in os.walk(dir))            
     self.progress.setMaximum(__totalFiles)
     
-    print(__totalFiles)
+    print(f"[!] Files: {__totalFiles}")
     for root, dirs, files in os.walk(dir):
         
         
@@ -734,8 +741,29 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
             
             item = self.listwidget.currentItem()
             current_item = str(item.text())
-            print(current_item)
-            decryptFile(current_item)
+            msg = QtWidgets.QMessageBox() 
+            msg.setIcon(QtWidgets.QMessageBox.Warning) 
+            msg.setWindowIcon(QtGui.QIcon(current_dir + "\\res\\ico\\antiVirus_ico.svg"))
+                                    
+                                        # setting message for Message Box 
+            msg.setText(f"{current_item}") 
+            msg.setInformativeText("Threat: <Unknow>\n\nDecrypt file?")
+                                        
+                                        # setting Message box window title 
+            msg.setWindowTitle("Movalabs") 
+                                        
+                                        # declaring buttons on Message Box 
+            msg.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.No) 
+                                        
+                                        # start the app 
+                                    
+            retval = msg.exec_()
+            
+            if retval == 1024:
+                decryptFile(current_item)
+            
+            else:
+                pass
 
         def browseFiles(MainWindow, self):
             
@@ -1157,7 +1185,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                 msg.setWindowTitle("Movalabs") 
                                         
                                         # declaring buttons on Message Box 
-                msg.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.No) 
+                msg.setStandardButtons(QtWidgets.QMessageBox.Ok) 
                                         
                                         # start the app 
                                     
