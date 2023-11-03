@@ -18,10 +18,13 @@ db_file = "./hash/HashDB"
 hashes = sqlite3.connect(db_file)
 db_cursor = hashes.cursor()
 
+
+
+
 __VersionGIT = "https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini"
 __Page = urllib.request.urlopen(__VersionGIT)
 LatestVersion__ = f"{__Page.read()}".replace("b","").replace("'","").replace("n","").replace("\\","")
-AppVersion__ = "1.0.4"
+AppVersion__ = "1.0.5"
 
 fernetKey = b'1np9HsC0fRY40-PADY_EylGu1RJfNANVeK_3j80yzpo='
 
@@ -61,6 +64,8 @@ historyDetectionsPF = []
 historyResult = []
 
 quarantine_itens = os.listdir(quarantine_path)
+
+
 
 def scaninfo(self):
     historyResult = []
@@ -1516,33 +1521,65 @@ def exitM():
                 
             print("Canceled.")
             pass
-        
-
-def update():
+def getDatasetVersion():
+    _dataFile = open(current_dir + '\\settings\\dataset.ini')
+    DatasetVersion__ = _dataFile.read()
+    _dataFile.close()
     
+    return DatasetVersion__           
+
+def update(type="app"):
+    DatasetVersion__ = getDatasetVersion()
     __VersionGIT = "https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini"
     __Page = urllib.request.urlopen(__VersionGIT)
     LatestVersion__ = f"{__Page.read()}".replace("b","").replace("'","").replace("n","").replace("\\","")
-
-    if AppVersion__ < LatestVersion__:
-        return True;
-        
-    else:
-        return False;
-        
-                  
     
+
+
+    if type == "app":
+        if AppVersion__ < LatestVersion__:
+            return True;
+            
+        else:
+            return False;
+    
+    else:
+        __DataGIT = "https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/dataset.ini"
+        __PageData = urllib.request.urlopen(__DataGIT)
+        DatasetLatest__ = f"{__PageData.read()}".replace("b","").replace("'","").replace("n","").replace("\\","")
+        if DatasetVersion__ < DatasetLatest__:
+            return True;
+            
+        else:
+            return False;
+        
+               
+    
+
+    
+
 def __modules__Verify():
     __missing = 0
     
     __updaterResult = update()
+    __updaterDataResult = update("data")
+    
+    DatasetVersion__ = getDatasetVersion()
     
     if __updaterResult == True:
-        print(f"[-] Current Version: {AppVersion__} (UPDATE AVALIABLE)")
+        
+        print(f"[-] Dataset Version: {AppVersion__} (NEED UPDATE)")
+        __missing += 1
+        
+    else:
+        print(f"[*] Dataset Version: {DatasetVersion__}")
+    
+    if __updaterResult == True:
+        print(f"[-] Current Version: {AppVersion__} (NEED UPDATE)")
         __missing += 1
     
     else:
-        print(f"[+] Current Version: {AppVersion__}")
+        print(f"[*] Current Version: {AppVersion__}")
     
     if os.path.isfile(current_dir + "\\new.yara"):
         
