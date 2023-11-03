@@ -1526,7 +1526,7 @@ def getDatasetVersion():
     DatasetVersion__ = _dataFile.read()
     _dataFile.close()
     
-    return DatasetVersion__           
+    return DatasetVersion__        
 
 def update(type="app"):
     DatasetVersion__ = getDatasetVersion()
@@ -1546,13 +1546,14 @@ def update(type="app"):
     else:
         __DataGIT = "https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/dataset.ini"
         __PageData = urllib.request.urlopen(__DataGIT)
-        DatasetLatest__ = f"{__PageData.read()}".replace("b","").replace("'","").replace("n","").replace("\\","")
+        DatasetLatest__ = str(f"{__PageData.read()}".replace("b","").replace("'","").replace("n","").replace("\\",""))
         
-        if int(DatasetVersion__) < int(DatasetLatest__):
-            return True;
+        
+        if DatasetVersion__ == DatasetLatest__:
+            return False;
             
         else:
-            return False;
+            return True;
         
                
     
@@ -1567,9 +1568,9 @@ def __modules__Verify():
     
     DatasetVersion__ = getDatasetVersion()
     
-    if __updaterResult == True:
+    if __updaterDataResult == True:
         
-        print(f"[-] Dataset Version: {AppVersion__} (NEED UPDATE)")
+        print(f"[-] Dataset Version: {DatasetVersion__} (NEED UPDATE)")
         __missing += 1
         
     else:
