@@ -1547,11 +1547,12 @@ def update(type="app"):
         __DataGIT = "https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/dataset.ini"
         __PageData = urllib.request.urlopen(__DataGIT)
         DatasetLatest__ = f"{__PageData.read()}".replace("b","").replace("'","").replace("n","").replace("\\","")
+
         if DatasetVersion__ < DatasetLatest__:
-            return True;
+            return False;
             
         else:
-            return False;
+            return True;
         
                
     
