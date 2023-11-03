@@ -24,7 +24,7 @@ try:
     __VersionGIT = "https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini"
     __Page = urllib.request.urlopen(__VersionGIT)
     LatestVersion__ = f"{__Page.read()}".replace("b","").replace("'","").replace("n","").replace("\\","")
-    AppVersion__ = "1.0.5"
+    AppVersion__ = "1.0.6"
     
 except:
     
@@ -194,6 +194,29 @@ def list_files(dir, self, tray):
                             matchesFolder = rules.match(data=file_content)
                     
                     hash = hashlib.md5(file_content).hexdigest()
+                    hash256 = hashlib.sha256(file_content).hexdigest()
+                    
+                    with open(current_dir + "\\hash\\256.txt", "r") as hashF:
+                        
+                        for line in hashF:
+                            
+                            for hashes in line.split():
+                                splited = hashes.split(":")
+                                
+                                if splited[0] == hash256 and file_name not in historyFilesDetected:
+                                    historyFilesDetected.append(file_name)
+                                    threat = splited[1]
+                        
+                                    print(f"[*] Malware Found (SHA-256 HASH) [{threat}]. \n[/] Filename: {file_name}")
+                                    
+                                    self.resultWidget.insertItem(fulltotal,f"{file_name} ({threat})")
+                                    self.Tabs.setCurrentIndex(3)
+                                    
+                                    historyDetections.insert(0,f"{fileR}: {threat}")
+                                    
+                                else:
+                                    continue                    
+
                     
                     __InDB = db_cursor.execute(f"SELECT hash, name FROM HashDB WHERE hash = '{hash}'").fetchone()
                     
