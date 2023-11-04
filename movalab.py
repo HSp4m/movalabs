@@ -196,6 +196,8 @@ def list_files(dir, self, tray):
                     hash = hashlib.md5(file_content).hexdigest()
                     hash256 = hashlib.sha256(file_content).hexdigest()
                     
+                    
+                    
                     with open(current_dir + "\\hash\\256.txt", "r") as hashF:
                         
                         for line in hashF:
