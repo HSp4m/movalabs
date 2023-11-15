@@ -11,32 +11,193 @@ import hashlib
 from cryptography.fernet import Fernet
 from datetime import datetime
 import urllib.request
+from time import sleep
+from rich.console import Console
+
 
 import sqlite3
-db_file = "./hash/HashDB"
-hashes = sqlite3.connect(db_file)
-db_cursor = hashes.cursor()
+
+console = Console()
+tasks = [f"Module {n}" for n in ["App"]]
+hash = "";
+historyPaths = []
+historyDetections = []
+historyFilesDetected = []
+historyDetectionsPF = []
+historyResult = []
+config = configparser.ConfigParser()
+
+def mode():
+    global rules;
+    global automaticUpdates;
+    global scanHistory;
+    global style;
+    global virustotal;
+    global vrapikey;
+    global metadefenderkey;
+    global metadefender;
+    global db_cursor;
+    global LatestVersion__;
+    global AppVersion__;
 
 
 
-try:
-
-    __VersionGIT = "https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini"
-    __Page = urllib.request.urlopen(__VersionGIT)
-    LatestVersion__ = f"{__Page.read()}".replace("b","").replace("'","").replace("n","").replace("\\","")
-    AppVersion__ = "1.0.6"
     
-except:
     
-    print()
-    print("[-] A error ocurred with github request.\n[-] Verify your internet connection and try again.\n[!] If this error persist reinstall the app on github (https://github.com/HSp4m/movalabs)")
-    print()
-    exit()
     
-fernetKey = b'1np9HsC0fRY40-PADY_EylGu1RJfNANVeK_3j80yzpo='
+    
+    __NaN = 0
+    __missing = 0
+    
+    try:
+
+        __VersionGIT = "https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini"
+        __Page = urllib.request.urlopen(__VersionGIT)
+        LatestVersion__ = f"{__Page.read()}".replace("b","").replace("'","").replace("n","").replace("\\","")
+        AppVersion__ = "1.1.0"
+    
+    except:
+        
+        console.log(f"[red]Fetch version[white] Returned a unexpected error. Check internet connection and try again.")
+        exit()
+    
+    try:
+        
+        config.read(settings_path)
+
+        
+
+        automaticUpdates = config["-settings-"]["automatic_update"]
+        scanHistory = config["-settings-"]["scan_history"]
+        style = config["-settings-"]["style"]
+        virustotal = config["-settings-"]["virustotal"]
+        vrapikey = config['-settings-']['vrapikey']
+        metadefenderkey = config["-settings-"]["metadefenderkey"]
+        metadefender = config["-settings-"]["metadefender"]
+
+    except:
+        
+        console.log(f"[red]Settings compile[white] Returned a unexpected error. Verify if the 'settings' folder exist or open this app on powershell")
+        sleep(1)
+        
+        exit();
+       
+    try:
+        
+        fh = open(current_dir + '\\new.yara')
+        rules = yara.compile(file=fh)
+
+        fh.close()
+        
+    except:
+        
+        console.log(f"[red]Yara compile[white] Returned a unexpected error. Verify if the 'new.yara' file exist or open this app on powershell")
+        sleep(1)
+        
+        exit();
+    
+
+    
+    try:
+        db_file = "./hash/HashDB"
+        
+        hashes = sqlite3.connect(db_file)
+        db_cursor = hashes.cursor()
+    except:
+        console.log(f"[red]Database connection[white] Returned a unexpected error. Verify if the 'hash' folder exist or open this app on powershell")
+        sleep(1)
+        
+        __missing += 1
+    
+    __updaterResult = update()
+    __updaterDataResult = update("data")
+    
+    DatasetVersion__ = getDatasetVersion()    
+    
+    
+    if __updaterDataResult == True:
+        console.log(f"[red]Module Dataset[white] Missing update")
+        
+        __missing += 1
+            
+            
+            
+    else:
+        console.log(f"[green]Module Dataset[white] ok")
+        
+        
+    if __updaterResult == True:
+        console.log(f"[red]Module App[white] Missing update")
+        
+        __missing += 1
+            
+    
+    else:
+        console.log(f"[green]Module App[white] ok")
+        
+            
+
+    if os.path.isfile(current_dir + "\\new.yara"):
+            
+        console.log(f"[green]Module Yara[white] ok")
+        
+    else:
+        __missing += 1
+        console.log(f"[red]Module Yara[white] Not found")
+        
+            
+
+    if os.path.isdir(current_dir + "\\res\\SideBar"):
+            
+        console.log(f"[green]Module Sidebar[white] ok")
+        
+            
+        if os.path.isfile(current_dir + "\\res\\SideBar\\home-outlinedWHITE.svg") and os.path.isfile(current_dir + "\\res\\SideBar\\settings_oWHITE.svg") and os.path.isfile(current_dir + "\\res\\SideBar\\quarantineWHITE.svg"):
+            console.log(f"[green]Module Sidebar.E[white] ok")
+            
+            
+        else:
+            console.log(f"[red]Module Sidebar.E[white] Not found/Missing files")
+            
+            __missing += 1
+            
+    else:
+        __missing += 1
+        console.log(f"[red]Module Sidebar[white] Not found")
+        
+           
+    if os.path.isfile(settings_path):
+        console.log(f"[green]Module Settings[white] ok")
+        
+        
+        
+    else:
+        __missing += 1
+        console.log(f"[red]Module Settings[white] Not found (CRITICAL)")
+    
+    
+        
+    
+    if __missing == 0:
+            sleep(1)
+            console.log(f"[green]App Loaded ({DatasetVersion__}) ({AppVersion__})")
+        
+    else:
+        sleep(1)
+        console.log(f"[red]App cannot load. {__missing} errors ocurred")
+        exit()
+        
+
+def verifyModules():
+    with console.status("[bold green]Working on app load...") as status:
+        while tasks:
+            task = tasks.pop(0)
+            sleep(1)
+            mode()
 
 
-fernet = Fernet(fernetKey)
+
+
 
 current_dir = os.path.dirname(__file__)
 settings_path = current_dir + "/settings/settings.ini"
@@ -44,33 +205,7 @@ quarantine_path = current_dir + "/settings/quarantine/"
 meta_defender_api = "https://api.metadefender.com/v4/hash/"
 
 
-fh = open(current_dir + '\\new.yara')
-rules = yara.compile(file=fh)
 
-fh.close()
-
-
-
-config = configparser.ConfigParser()
-config.read(settings_path)
-
-hash = "";
-
-automaticUpdates = config["-settings-"]["automatic_update"]
-scanHistory = config["-settings-"]["scan_history"]
-style = config["-settings-"]["style"]
-virustotal = config["-settings-"]["virustotal"]
-vrapikey = config['-settings-']['vrapikey']
-metadefenderkey = config["-settings-"]["metadefenderkey"]
-metadefender = config["-settings-"]["metadefender"]
-
-historyPaths = []
-historyDetections = []
-historyFilesDetected = []
-historyDetectionsPF = []
-historyResult = []
-
-quarantine_itens = os.listdir(quarantine_path)
 
 
 
@@ -86,43 +221,43 @@ def scaninfo(self):
     __fileDetections = __fDetections[1].split(" ")[0]
     
     print(f"[!] Detections: {__fileDetections}")
-    for y in historyDetections:
-        __fileArray = y.split(": ")
-        __fileArray = os.path.split(__fileArray[0])
-        __filename = __fileArray[1].split(":")
+    with console.status(f"[bold green]Getting info of {__fileDetections} malwares...") as status:
+        for y in historyDetections:
+            __fileArray = y.split(": ")
+            __fileArray = os.path.split(__fileArray[0])
+            __filename = __fileArray[1].split(":")
 
-        __filePath = __fileArray[0] + "/" + __filename[0]
-    
+            __filePath = __fileArray[0] + "/" + __filename[0]
+        
 
-        __fileThreat = y.split(": ")[1]
-        
-        
-        for i in historyPaths:
+            __fileThreat = y.split(": ")[1]
             
-            if i in current_item and i in __filePath and __filename[0] not in historyResult and i in historyPaths and __get < int(__fileDetections):
+            
+            for i in historyPaths:
                 
-                historyResult.append(__filename[0])
-                msg = QtWidgets.QMessageBox() 
-                msg.setIcon(QtWidgets.QMessageBox.Information)
-                msg.setWindowIcon(QtGui.QIcon(current_dir + "\\res\\ico\\AntiVirus_ico.ico")) 
-                msg.setText(f"Scan ({__filename[0]})")
-                msg.setInformativeText(f"Detected: {__fileThreat} \nPath: {__filePath}") 
-                msg.setWindowTitle("Movalabs") 
-                msg.setStandardButtons(QtWidgets.QMessageBox.Ok) 
+                if i in current_item and i in __filePath and __filename[0] not in historyResult and i in historyPaths and __get < int(__fileDetections):
+                    
+                    historyResult.append(__filename[0])
+                    console.log(f"[yellow]'{__filename[0]}'[white] detected as [yellow]'{__fileThreat}' ")
+                    msg = QtWidgets.QMessageBox() 
+                    msg.setIcon(QtWidgets.QMessageBox.Information)
+                    msg.setWindowIcon(QtGui.QIcon(current_dir + "\\res\\ico\\AntiVirus_ico.ico")) 
+                    msg.setText(f"Scan ({__filename[0]})")
+                    msg.setInformativeText(f"Detected: {__fileThreat} \nPath: {__filePath}") 
+                    msg.setWindowTitle("Movalabs") 
+                    msg.setStandardButtons(QtWidgets.QMessageBox.Ok) 
+                                                
+                                                # start the app 
                                             
-                                            # start the app 
-                                        
-                retval = msg.exec_()
-                
-                
-                print("[!] Item found in list")
-                print(f"[*] Threat: {__fileThreat}")
-                print(f"[*] Path: {i}")
-                __get += 1
-                
-            else:
-                
-                continue
+                    retval = msg.exec_()
+                    
+                    
+                    
+                    __get += 1
+                    
+                else:
+                    
+                    continue
                 
         
         
@@ -176,124 +311,131 @@ def list_files(dir, self, tray):
     self.progress.setMaximum(__totalFiles)
     
     print(f"[!] Files: {__totalFiles}")
-    for root, dirs, files in os.walk(dir):
+    with console.status(f"[bold green]Running a scan in '{dir}'...") as status:
+  
         
-        
-        try:
-            total += 1
-            fulltotal = total - 1
             
-            for file_name in files:
-                __filesVerificated += 1;
-                self.progress.setValue(__filesVerificated)
-                file = os.path.join(root, file_name)
-                fileR = file.replace("\\", "/")
-                if file_name not in ["movalab.py", "new.yara"]:
-                    with open(file,'rb') as filef:
-                            file_content = filef.read()
-                            matchesFolder = rules.match(data=file_content)
-                    
-                    hash = hashlib.md5(file_content).hexdigest()
-                    hash256 = hashlib.sha256(file_content).hexdigest()
-                    
-                    
-                    
-                    with open(current_dir + "\\hash\\256.txt", "r") as hashF:
+        for root, dirs, files in os.walk(dir):
+            
+            
+            
+            try:
+                total += 1
+                
                         
-                        for line in hashF:
+                fulltotal = total - 1
+                
+                for file_name in files:
+                    __filesVerificated += 1;
+                    self.progress.setValue(__filesVerificated)
+                    file = os.path.join(root, file_name)
+                    fileR = file.replace("\\", "/")
+                    if file_name not in ["movalab.py", "new.yara"]:
+                        with open(file,'rb') as filef:
+                                file_content = filef.read()
+                                matchesFolder = rules.match(data=file_content)
+                        
+                        hash = hashlib.md5(file_content).hexdigest()
+                        hash256 = hashlib.sha256(file_content).hexdigest()
+                        
+                        
+                        
+                        with open(current_dir + "\\hash\\256.txt", "r") as hashF:
                             
-                            for hashes in line.split():
-                                splited = hashes.split(":")
+                            for line in hashF:
                                 
-                                if splited[0] == hash256 and file_name not in historyFilesDetected:
-                                    historyFilesDetected.append(file_name)
-                                    threat = splited[1]
-                        
-                                    print(f"[*] Malware Found (SHA-256 HASH) [{threat}]. \n[/] Filename: {file_name}")
+                                for hashes in line.split():
+                                    splited = hashes.split(":")
                                     
-                                    self.resultWidget.insertItem(fulltotal,f"{file_name} ({threat})")
-                                    self.Tabs.setCurrentIndex(3)
-                                    
-                                    historyDetections.insert(0,f"{fileR}: {threat}")
-                                    
-                                else:
-                                    continue                    
-
-                    
-                    __InDB = db_cursor.execute(f"SELECT hash, name FROM HashDB WHERE hash = '{hash}'").fetchone()
-                    
-                    if isinstance(__InDB, tuple) and file_name not in historyFilesDetected:
-                        print(f"[*] {file_name} found in [HashDB] ({__InDB[1]})")
-                        historyFilesDetected.append(file_name)
-                                    
-                                    
-                        self.resultWidget.insertItem(fulltotal,f"{file_name} ({__InDB[1]})")
-                        self.Tabs.setCurrentIndex(3)
-                                    
-                        historyDetections.insert(0,f"{fileR}: {__InDB[1]}")
-                        
-                    with open(current_dir + "\\hash\\md5.txt", "r") as hashFile:
-                    
-                        
-                        for line in hashFile:
+                                    if splited[0] == hash256 and file_name not in historyFilesDetected:
+                                        historyFilesDetected.append(file_name)
+                                        threat = splited[1]
                             
-                            for hashes in line.split():
-                                
-                                if hashes == hash and file_name not in historyFilesDetected:
-                                    historyFilesDetected.append(file_name)
-                                    
-                        
-                                    print(f"[*] {file_name} found in [md5.txt] (Hash: {hash})")
-                                    
-                                    self.resultWidget.insertItem(fulltotal,f"{file_name} (UDS:DangerousObject.HashList)")
-                                    self.Tabs.setCurrentIndex(3)
-                                    
-                                    historyDetections.insert(0,f"{fileR}: UDS:DangerousObject.HashList")
-                                else:
-                                    continue
-                                
-                    if matchesFolder != []:
-                        
-                        detected = 1;
-                        self.Tabs.setCurrentIndex(3)
-                        for match in matchesFolder:
+                                        console.log(f"[red]'{file_name}'[white] is infected with [red]'{threat}'")
+                                        
+                                        self.resultWidget.insertItem(fulltotal,f"{file_name} ({threat})")
+                                        self.Tabs.setCurrentIndex(3)
+                                        
+                                        historyDetections.insert(0,f"{fileR}: {threat}")
+                                        
+                                    else:
+                                        continue                    
 
+                        
+                        __InDB = db_cursor.execute(f"SELECT hash, name FROM HashDB WHERE hash = '{hash}'").fetchone()
+                        
+                        if isinstance(__InDB, tuple) and file_name not in historyFilesDetected:
+                            
+                            console.log(f"[red]'{file_name}'[white] is infected with [red]'{__InDB[1]}'")
+                            historyFilesDetected.append(file_name)
+                                        
+                                        
+                            self.resultWidget.insertItem(fulltotal,f"{file_name} ({__InDB[1]})")
+                            self.Tabs.setCurrentIndex(3)
+                                        
+                            historyDetections.insert(0,f"{fileR}: {__InDB[1]}")
+                            
+                        with open(current_dir + "\\hash\\md5.txt", "r") as hashFile:
+                        
+                            
+                            for line in hashFile:
                                 
-                                
-                            threat = match.meta.get('threat', "?")
-                                
-                            if file_name not in historyFilesDetected:
-                                if threat == "?":
-                                    threat = match.meta.get('malware_family', "?")
+                                for hashes in line.split():
+                                    
+                                    if hashes == hash and file_name not in historyFilesDetected:
+                                        historyFilesDetected.append(file_name)
+                                        
+                            
+                                        console.log(f"[red]'{file_name}'[white] is infected with [red]'UDS:DangerousObject.HashList'")
+                                        
+                                        self.resultWidget.insertItem(fulltotal,f"{file_name} (UDS:DangerousObject.HashList)")
+                                        self.Tabs.setCurrentIndex(3)
+                                        
+                                        historyDetections.insert(0,f"{fileR}: UDS:DangerousObject.HashList")
+                                    else:
+                                        continue
+                                    
+                        if matchesFolder != []:
+                            
+                            detected = 1;
+                            self.Tabs.setCurrentIndex(3)
+                            for match in matchesFolder:
+
+                                    
+                                    
+                                threat = match.meta.get('threat', "?")
+                                    
+                                if file_name not in historyFilesDetected:
                                     if threat == "?":
-                                        threat = "UDS:DangerousObject.multi.generic"
+                                        threat = match.meta.get('malware_family', "?")
+                                        if threat == "?":
+                                            threat = "UDS:DangerousObject.multi.generic"
+                                            historyFilesDetected.append(file_name)
+                                            self.resultWidget.insertItem(fulltotal,f"{file_name} ({threat})")
+
+                                            historyDetections.insert(0,f"{fileR}: {threat}")
+                                        else:    
+                                            historyFilesDetected.append(file_name)
+                                            self.resultWidget.insertItem(fulltotal,f"{file_name} ({threat})")
+
+                                            historyDetections.insert(0,f"{fileR}: {threat}")
+                                    else:
+                                        threat = match.meta.get('threat', "?")
                                         historyFilesDetected.append(file_name)
                                         self.resultWidget.insertItem(fulltotal,f"{file_name} ({threat})")
 
                                         historyDetections.insert(0,f"{fileR}: {threat}")
-                                    else:    
-                                        historyFilesDetected.append(file_name)
-                                        self.resultWidget.insertItem(fulltotal,f"{file_name} ({threat})")
-
-                                        historyDetections.insert(0,f"{fileR}: {threat}")
-                                else:
-                                    threat = match.meta.get('threat', "?")
-                                    historyFilesDetected.append(file_name)
-                                    self.resultWidget.insertItem(fulltotal,f"{file_name} ({threat})")
-
-                                    historyDetections.insert(0,f"{fileR}: {threat}")
-                                    
-                                    
-                                    
-                        
-                        print(f"[*] Malware Found [{threat}]. \n[/] Filename: {file_name}")
-                else:
-                    continue 
+                                        
+                                        
+                                        
+                            
+                            console.log(f"[red]'{file_name}'[white] is infected with [red]'{threat}'")
+                    else:
+                        continue 
+        
+            except:
+                continue
     
-        except:
-            continue
-    if detected == 0:
-        print("[*] No file detected with yara list")
     
     if len(historyFilesDetected) == 0:
         self.progress.setVisible(False)
@@ -308,22 +450,19 @@ def list_files(dir, self, tray):
         historyPaths.append(dir)
             
     if len(historyFilesDetected) == 0:
+
         notify(tray,"No malware found", f"No malware found in [{dir}].", "AntiVirus_icoGreen.svg")
+        sleep(1)
+        console.log(f"No malware found in '{dir}'")
     else:
         notify(tray,"Malware found", f"Open the app to see the results.", "AntiVirus_icoRed.svg")
+        sleep(1)
+        console.log(f"[red]{len(historyFilesDetected)}[white] malwares found in [red]'{dir}'")
         
         
         
 def itens(self):
-    count = 0
-                
-    quarantine_itens = os.listdir(quarantine_path)
-    for i in quarantine_itens:
-                        
-        count += 1
-        final = count-1
-                            
-        self.listwidget.insertItem(final, i)
+    pass;
         
 
 
@@ -835,396 +974,388 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
             
             if os.path.isfile(filepath) and filename not in ["movalab.py", "new.yara"]:
                 
-                
-                vrapikey = config['-settings-']['vrapikey']
-                direc = filepath
-                
-                file = open(filepath, "rb")
-                file_content = file.read()
-                suspecious = False;
-                found = False;
-                with open(direc,'rb') as filef:
-                    print("[+] Starting YARA RULES verification")
-                    matches = rules.match(data=filef.read())
+                with console.status(f"[bold green]Running a scan for the file '{filename}' ...") as status:
+                    vrapikey = config['-settings-']['vrapikey']
+                    direc = filepath
                     
-                
-                if matches != []:
-                    found = True
-                    print(F"[*] FOUND: {matches}")
+                    file = open(filepath, "rb")
+                    file_content = file.read()
+                    suspecious = False;
+                    found = False;
+                    with open(direc,'rb') as filef:
+                        
+                        matches = rules.match(data=filef.read())
+                        
                     
-                    for match in matches:
-                        for rule in rules:
-                            
-                            namespace = rule.meta.get('namespace', '?')
-                            threat = rule.meta.get('threat', '?')
-                            if namespace == f"{match}":
-                                yaraF = True;
+                    if matches != []:
+                        found = True
+                        
+                        
+                        for match in matches:
+                                
+                                threat = match.meta.get('threat', '?')
+                                console.log(F"[red]'{filename}'[white] is infected with [red]'{threat}'")
                                 scan_end(self, "yara", "File scan")
                                 notify(tray,"Malware Detected", f"Type: {threat} \nDetection: Yara rules", "AntiVirus_icoRed.svg")
                                 self.FilePath.setText(f"Detection Type: Yara Rules ({threat})")
-                                
-                                
-                
+                                    
+                                    
                     
-                hash = hashlib.md5(file_content).hexdigest()
-                
-                file.close()
-                print(hash)
-                
-                
-                
-                with open("hash\\md5.txt", "r") as hashFile:
-                    
-                    print("[+] Reading [md5.txt]")
-                    for line in hashFile:
-                        #print(line)
-                        for hashes in line.split():
+                        
+                    hash = hashlib.md5(file_content).hexdigest()
+                    hash256 = hashlib.sha256(file_content).hexdigest()
+                    file.close()    
+                        
+                        
+                    with open(current_dir + "\\hash\\256.txt", "r") as hashF:
                             
-                            if hashes == hash:
-                                notify(tray,"Malware Found", "Detection type: Hash List", "AntiVirus_icoRed.svg")
-                                self.FilePath.setText("Detection Type:  Hash List")
-                                print(f"[*] File found in [md5.txt] (Hash: {hash})")
-                                scan_end(self, "hash", "File scan")
-                                found = True
+                        for line in hashF:
+                                
+                            for hashes in line.split():
+                                splited = hashes.split(":")
+                                    
+                                if splited[0] == hash256 and found != True:
+                                    threat = splited[1]
+                                    found = True
+                                    console.log(f"[red]'{filename}'[white] is infected with [red]'{threat}'")
+                                    
+                                    notify(tray,"Malware Detected", f"Type: {threat} \nDetection: Hash list", "AntiVirus_icoRed.svg")
+
+                                        
+                                else:
+                                    continue                    
+
+                        
+                    __InDB = db_cursor.execute(f"SELECT hash, name FROM HashDB WHERE hash = '{hash}'").fetchone()
+                        
+                    if isinstance(__InDB, tuple) and found != True:
+                        found = True    
+                        console.log(f"[red]'{filename}'[white] is infected with [red]'{__InDB[1]}'")
+
+                        notify(tray,"Malware Detected", f"Type: {threat} \nDetection: Hash list", "AntiVirus_icoRed.svg")
+                    
+                    
+                    
+                    with open("hash\\md5.txt", "r") as hashFile:
+                        
+                        
+                        for line in hashFile:
+                            #print(line)
+                            for hashes in line.split():
+                                
+                                if hashes == hash:
+                                    notify(tray,"Malware Found", "Detection type: Hash List", "AntiVirus_icoRed.svg")
+                                    self.FilePath.setText("Detection Type:  Hash List")
+                                    console.log(F"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.HashList'")
+                                    scan_end(self, "hash", "File scan")
+                                    found = True
+                                    pass;
+                                
+                            if found == True:
                                 pass;
                             
-                        if found == True:
-                            pass;
-                        
-                if found == True:
-                        pass;
-                else:
-                    print("[-] File not found in [md5.txt]")       
-                            
-                hashFile.close()
-                            
-                
-                detections = 0;
-                
-                try:
-                    if self.UseVirusTotalApiCheckBox.isChecked() and found != True and os.path.getsize(filepath) < 32000000:
-                        if vrapikey != '':
-                            if direc != '':
-                                if os.path.isfile(direc):
-                                    found = False;
-                                    
-                                    print(f"[+] Verifying: {direc}")
-                                    files = {"file": (os.path.basename(filepath), open(os.path.abspath(filepath), "rb"))}
-                                    vtotal = Virustotal(API_KEY=vrapikey)
-                                    resp = vtotal.request("files", files=files, method="POST")
-                                    id = resp.data["id"]
-                                    headers = {"x-apikey": vrapikey}
-                                    analysis = requests.get(f"https://www.virustotal.com/api/v3/analyses/{id}", headers=headers)
-                                    analysis_json = analysis.json()
-                                    detections = analysis_json["data"]["attributes"]["stats"]["malicious"]
-                                    not_detections = analysis_json["data"]["attributes"]["stats"]["undetected"]
-                                    
-                                    
-                                    if not_detections == 0:
-                                        self.DetectionsText.setStyleSheet("color: red")
-                                        self.DetectionsText.setText(f"{str(detections)} INVALID | {str(not_detections)}")
+                    if found == True:
+                            pass;      
+                                
+                    hashFile.close()
+                                
+                    
+                    detections = 0;
+                    
+                    try:
+                        if self.UseVirusTotalApiCheckBox.isChecked() and found != True and os.path.getsize(filepath) < 32000000:
+                            if vrapikey != '':
+                                if direc != '':
+                                    if os.path.isfile(direc):
                                         found = False;
-                                    if detections > 10:
-                                        scan_end(self, detections, "File scan")
-                                        notify(tray,"Malware Found", "Detection type: VirusTotal", "AntiVirus_icoRed.svg")
-                                        self.FilePath.setText("Detection Type:  Virustotal")
-                                        self.DetectionsText.setStyleSheet("color: red")
-                                        self.DetectionsText.setText(f"{str(detections)} | {str(not_detections)}")
-                                        found = True
                                         
-                                    elif detections > 4:
-                                        scan_end(self, detections, "File scan")
-                                        notify(tray,"Malware Found", "Detection type: VirusTotal", "AntiVirus_icoRed.svg")
-                                        self.FilePath.setText("Detection Type:  Virustotal")
-                                        self.DetectionsText.setStyleSheet("color: yellow")
-                                        self.DetectionsText.setText(f"{str(detections)} | {str(not_detections)}")
-                                        found = True;
                                         
-                                    elif detections > not_detections:
-                                        scan_end(self, detections, "File scan")
-                                        notify(tray,"Malware Found", "Detection type: VirusTotal", "AntiVirus_icoRed.svg")
-                                        self.FilePath.setText("Detection Type:  Virustotal")
-                                        self.DetectionsText.setStyleSheet("color: red")
-                                        self.DetectionsText.setText(f"{str(detections)} | {str(not_detections)}")
-                                        found = True;
+                                        files = {"file": (os.path.basename(filepath), open(os.path.abspath(filepath), "rb"))}
+                                        vtotal = Virustotal(API_KEY=vrapikey)
+                                        resp = vtotal.request("files", files=files, method="POST")
+                                        id = resp.data["id"]
+                                        headers = {"x-apikey": vrapikey}
+                                        analysis = requests.get(f"https://www.virustotal.com/api/v3/analyses/{id}", headers=headers)
+                                        analysis_json = analysis.json()
+                                        detections = analysis_json["data"]["attributes"]["stats"]["malicious"]
+                                        not_detections = analysis_json["data"]["attributes"]["stats"]["undetected"]
+                                        
+                                        
+                                        if not_detections == 0:
+                                            self.DetectionsText.setStyleSheet("color: red")
+                                            self.DetectionsText.setText(f"{str(detections)} INVALID | {str(not_detections)}")
+                                            found = False;
+                                        if detections > 10:
+                                            console.log(F"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
+                                            scan_end(self, detections, "File scan")
+                                            notify(tray,"Malware Found", "Detection type: VirusTotal", "AntiVirus_icoRed.svg")
+                                            self.FilePath.setText("Detection Type:  Virustotal")
+                                            self.DetectionsText.setStyleSheet("color: red")
+                                            self.DetectionsText.setText(f"{str(detections)} | {str(not_detections)}")
+                                            found = True
+                                            
+                                        elif detections > 4:
+                                            console.log(F"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
+                                            scan_end(self, detections, "File scan")
+                                            notify(tray,"Malware Found", "Detection type: VirusTotal", "AntiVirus_icoRed.svg")
+                                            self.FilePath.setText("Detection Type:  Virustotal")
+                                            self.DetectionsText.setStyleSheet("color: yellow")
+                                            self.DetectionsText.setText(f"{str(detections)} | {str(not_detections)}")
+                                            found = True;
+                                            
+                                        elif detections > not_detections:
+                                            console.log(F"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
+                                            scan_end(self, detections, "File scan")
+                                            notify(tray,"Malware Found", "Detection type: VirusTotal", "AntiVirus_icoRed.svg")
+                                            self.FilePath.setText("Detection Type:  Virustotal")
+                                            self.DetectionsText.setStyleSheet("color: red")
+                                            self.DetectionsText.setText(f"{str(detections)} | {str(not_detections)}")
+                                            found = True;
+                                        else:
+                                            
+                                            found = False;
+                                            self.DetectionsText.setStyleSheet("color: white")
+                                            
+                                            self.DetectionsText.setText(f"{str(detections)} | {str(not_detections)}")
+                                        print(f"[?] Scan end")
                                     else:
-                                        
-                                        found = False;
-                                        self.DetectionsText.setStyleSheet("color: white")
-                                        
-                                        self.DetectionsText.setText(f"{str(detections)} | {str(not_detections)}")
-                                    print(f"[?] Scan end")
+                                        msg = QtWidgets.QMessageBox() 
+                                        msg.setIcon(QtWidgets.QMessageBox.Critical) 
+                                            
+                                                # setting message for Message Box 
+                                        msg.setText("Invalid File path") 
+                                                
+                                                # setting Message box window title 
+                                        msg.setWindowTitle("ERROR") 
+                                                
+                                                # declaring buttons on Message Box 
+                                        msg.setStandardButtons(QtWidgets.QMessageBox.Ok) 
+                                                
+                                                # start the app 
+                                            
+                                        retval = msg.exec_()
                                 else:
                                     msg = QtWidgets.QMessageBox() 
                                     msg.setIcon(QtWidgets.QMessageBox.Critical) 
-                                        
-                                            # setting message for Message Box 
-                                    msg.setText("Invalid File path") 
                                             
-                                            # setting Message box window title 
+                                                # setting message for Message Box 
+                                    msg.setText("No file set") 
+                                                
+                                                # setting Message box window title 
                                     msg.setWindowTitle("ERROR") 
-                                            
-                                            # declaring buttons on Message Box 
+                                                
+                                                # declaring buttons on Message Box 
                                     msg.setStandardButtons(QtWidgets.QMessageBox.Ok) 
+                                                
+                                                # start the app 
                                             
-                                            # start the app 
-                                        
                                     retval = msg.exec_()
+                                
                             else:
+                                self.label.setText("")
                                 msg = QtWidgets.QMessageBox() 
                                 msg.setIcon(QtWidgets.QMessageBox.Critical) 
+                                    
+                                        # setting message for Message Box 
+                                msg.setText("Apikey not set.") 
                                         
-                                            # setting message for Message Box 
-                                msg.setText("No file set") 
-                                            
-                                            # setting Message box window title 
+                                        # setting Message box window title 
                                 msg.setWindowTitle("ERROR") 
-                                            
-                                            # declaring buttons on Message Box 
-                                msg.setStandardButtons(QtWidgets.QMessageBox.Ok) 
-                                            
-                                            # start the app 
                                         
+                                        # declaring buttons on Message Box 
+                                msg.setStandardButtons(QtWidgets.QMessageBox.Ok) 
+                                        
+                                        # start the app 
+                                    
                                 retval = msg.exec_()
-                            
                         else:
-                            self.label.setText("")
-                            msg = QtWidgets.QMessageBox() 
-                            msg.setIcon(QtWidgets.QMessageBox.Critical) 
+                            
+                            self.DetectionsText.setStyleSheet("color: white")
+                            self.DetectionsText.setText(f"Skipped")
+                            
+                            
+                    except NameError as e:
+                        self.DetectionsText.setStyleSheet("color: white")
+                        self.DetectionsText.setText(f"ERROR")
+                        msg = QtWidgets.QMessageBox() 
+                        msg.setIcon(QtWidgets.QMessageBox.Critical) 
+                        msg.setWindowIcon(QtGui.QIcon(current_dir + '\\res\\ico\\AntiVirus_ico.svg'))
+                
                                 
                                     # setting message for Message Box 
-                            msg.setText("Apikey not set.") 
+                
                                     
                                     # setting Message box window title 
-                            msg.setWindowTitle("ERROR") 
+                        msg.setWindowTitle("Movalabs")     
+                                        # setting message for Message Box 
+                        msg.setText("Virustotal API.") 
+                        msg.setInformativeText(f"Cannot verify the file with virustotal ({e}).")
+                                        
+                                        
+                        msg.setStandardButtons(QtWidgets.QMessageBox.Ok) 
+                                        
+                                        # start the app 
                                     
-                                    # declaring buttons on Message Box 
-                            msg.setStandardButtons(QtWidgets.QMessageBox.Ok) 
-                                    
-                                    # start the app 
+                        retval = msg.exec_()
+                    try:   
+                        if self.UseMetaDefenderApiCheckBox.isChecked() and found != True:
+                            # get api key
+                            MetaDefenderApiKey = self.MetaDefenderApiKey.text()
+                            # check if api key is empty if yes then show error
+                            if MetaDefenderApiKey == "":
                                 
-                            retval = msg.exec_()
-                    else:
-                        
-                        self.DetectionsText.setStyleSheet("color: white")
-                        self.DetectionsText.setText(f"Skipped")
-                        print(f"[?] Scan end")
-                        
-                except NameError as e:
-                    self.DetectionsText.setStyleSheet("color: white")
-                    self.DetectionsText.setText(f"ERROR")
-                    msg = QtWidgets.QMessageBox() 
-                    msg.setIcon(QtWidgets.QMessageBox.Critical) 
-                    msg.setWindowIcon(QtGui.QIcon(current_dir + '\\res\\ico\\AntiVirus_ico.svg'))
-            
-                            
-                                # setting message for Message Box 
-            
-                                
-                                # setting Message box window title 
-                    msg.setWindowTitle("Movalabs")     
-                                    # setting message for Message Box 
-                    msg.setText("Virustotal API.") 
-                    msg.setInformativeText(f"Cannot verify the file with virustotal ({e}).")
-                                    
-                                    
-                    msg.setStandardButtons(QtWidgets.QMessageBox.Ok) 
-                                    
-                                    # start the app 
-                                
-                    retval = msg.exec_()
-                try:   
-                    if self.UseMetaDefenderApiCheckBox.isChecked() and found != True:
-                        # get api key
-                        MetaDefenderApiKey = self.MetaDefenderApiKey.text()
-                        # check if api key is empty if yes then show error
-                        if MetaDefenderApiKey == "":
-                            
-                            msgBox = QtWidgets.QMessageBox()
-                            msgBox.setIcon(QtWidgets.QMessageBox.Critical)
-                            msg.setWindowIcon(QtGui.QIcon(current_dir + '\\res\\ico\\AntiVirus_ico.svg'))
+                                msgBox = QtWidgets.QMessageBox()
+                                msgBox.setIcon(QtWidgets.QMessageBox.Critical)
+                                msg.setWindowIcon(QtGui.QIcon(current_dir + '\\res\\ico\\AntiVirus_ico.svg'))
 
-                            msg.setWindowTitle("Movalabs")
-                            msgBox.setText("Error")
-                            msgBox.setInformativeText(f"""\
-        Please enter a valid Meta Defender API key.
-                            """)
-                            # remove window title bar
-                            msgBox.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-                            msgBox.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-                            msgBox.exec_()
-                        # if api key is not empty then scan the hash of the file
-                        else:
-                            print(f"[+] Verifying (METADEFENDER): {direc}")
-                            M_header=({"apikey": MetaDefenderApiKey})
-                            M_analysis = requests.get(meta_defender_api + hash, headers=M_header)
-                            M_analysis_json = M_analysis.json()
-                            M_detections = M_analysis_json["scan_results"]["total_detected_avs"]
-                            M_not_detections = M_analysis_json["scan_results"]["total_avs"]
-                            half_M_not_detections = M_not_detections / 2
-                            # show Meta Defender results
-                            self.MetaDefenderWidget.show()
-                            # if detections more than half of not detections print red
-                            print(f"[NOT: {M_not_detections}] [HALFNOT: {half_M_not_detections}]")
-                            if M_detections > 3:
-                                scan_end(self, M_detections, "File scan")
-                                found = True
-                                self.MetaDefenderDetectionsText.setStyleSheet("color: red")
-                                self.MetaDefenderDetectionsText.setText(f"{str(M_detections)} | {str(M_not_detections)}")
-                                self.IsFileVirusY_N.setStyleSheet("color: red")
-                                if found == False:
-                                    self.IsFileVirusY_N.setFont(QtGui.QFont("Arial", 10))
-                                    self.IsFileVirusY_N.setText("Probably a virus!")
-                                else:
-                                    pass
-                            if M_detections > half_M_not_detections:
-                                scan_end(self, M_detections, "File scan")
-                                self.FilePath.setText("Detection Type:  MetaDefender")
-                                found = True
-                                self.MetaDefenderDetectionsText.setStyleSheet("color: red")
-                                notify(tray,"Malware Found", "Detection type: MetaDefender", "AntiVirus_icoRed.svg")
-                                self.MetaDefenderDetectionsText.setText(f"{str(M_detections)} | {str(M_not_detections)}")
-                                self.IsFileVirusY_N.setStyleSheet("color: red")
-                                if found == False:
-                                    self.IsFileVirusY_N.setFont(QtGui.QFont("Arial", 10))
-                                    self.IsFileVirusY_N.setText("Probably a virus!")
-                                else:
-                                    pass
+                                msg.setWindowTitle("Movalabs")
+                                msgBox.setText("Error")
+                                msgBox.setInformativeText(f"""\
+            Please enter a valid Meta Defender API key.
+                                """)
+                                # remove window title bar
+                                msgBox.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+                                msgBox.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+                                msgBox.exec_()
+                            # if api key is not empty then scan the hash of the file
                             else:
-                                found = False
-                                self.MetaDefenderDetectionsText.setStyleSheet("color: green")
-                                self.MetaDefenderDetectionsText.setText(f"{str(M_detections)} | {str(M_not_detections)}")
-                                if found == False:
-                                    self.IsFileVirusY_N.setStyleSheet("color: green")
-                                    self.IsFileVirusY_N.setFont(QtGui.QFont("Arial", 12))
-                                    self.IsFileVirusY_N.setText("Probably clean")
+                                print(f"[+] Verifying (METADEFENDER): {direc}")
+                                M_header=({"apikey": MetaDefenderApiKey})
+                                M_analysis = requests.get(meta_defender_api + hash, headers=M_header)
+                                M_analysis_json = M_analysis.json()
+                                M_detections = M_analysis_json["scan_results"]["total_detected_avs"]
+                                M_not_detections = M_analysis_json["scan_results"]["total_avs"]
+                                half_M_not_detections = M_not_detections / 2
+                                # show Meta Defender results
+                                self.MetaDefenderWidget.show()
+                                # if detections more than half of not detections print red
+                               
+                                if M_detections > 3:
+                                    console.log(F"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
+                                    scan_end(self, M_detections, "File scan")
+                                    found = True
+                                    self.MetaDefenderDetectionsText.setStyleSheet("color: red")
+                                    self.MetaDefenderDetectionsText.setText(f"{str(M_detections)} | {str(M_not_detections)}")
+                                    self.IsFileVirusY_N.setStyleSheet("color: red")
+                                    if found == False:
+                                        self.IsFileVirusY_N.setFont(QtGui.QFont("Arial", 10))
+                                        self.IsFileVirusY_N.setText("Probably a virus!")
+                                    else:
+                                        pass
+                                if M_detections > half_M_not_detections:
+                                    console.log(F"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
+                                    scan_end(self, M_detections, "File scan")
+                                    self.FilePath.setText("Detection Type:  MetaDefender")
+                                    found = True
+                                    self.MetaDefenderDetectionsText.setStyleSheet("color: red")
+                                    notify(tray,"Malware Found", "Detection type: MetaDefender", "AntiVirus_icoRed.svg")
+                                    self.MetaDefenderDetectionsText.setText(f"{str(M_detections)} | {str(M_not_detections)}")
+                                    self.IsFileVirusY_N.setStyleSheet("color: red")
+                                    if found == False:
+                                        self.IsFileVirusY_N.setFont(QtGui.QFont("Arial", 10))
+                                        self.IsFileVirusY_N.setText("Probably a virus!")
+                                    else:
+                                        pass
                                 else:
-                                    pass
-                            print(f"[?] Scan end")
-                    else:
+                                    found = False
+                                    self.MetaDefenderDetectionsText.setStyleSheet("color: green")
+                                    self.MetaDefenderDetectionsText.setText(f"{str(M_detections)} | {str(M_not_detections)}")
+                                    if found == False:
+                                        self.IsFileVirusY_N.setStyleSheet("color: green")
+                                        self.IsFileVirusY_N.setFont(QtGui.QFont("Arial", 12))
+                                        self.IsFileVirusY_N.setText("Probably clean")
+                                    else:
+                                        pass
+                               
+                        else:
+                            self.MetaDefenderDetectionsText.setStyleSheet("color: white")
+                            self.MetaDefenderDetectionsText.setText(f"Skipped")
+                            
+                            
+                    except:
                         self.MetaDefenderDetectionsText.setStyleSheet("color: white")
-                        self.MetaDefenderDetectionsText.setText(f"Skipped")
-                        print(f"[?] Scan end")
+                        self.MetaDefenderDetectionsText.setText(f"ERROR")
+                        notify(tray,"Metadefender API", "Cannot verify the file with metadefender.", "AntiVirus_ico.ico")
+                        console.log(F"[yellow]'{filename}'[white] cannot be verified with [yellow]'Metadenfender API'")
                         
-                except:
-                    self.MetaDefenderDetectionsText.setStyleSheet("color: white")
-                    self.MetaDefenderDetectionsText.setText(f"ERROR")
-                    notify(tray,"Metadefender API", "Cannot verify the file with metadefender.", "AntiVirus_ico.ico")
-                    
-                    
-                self.FileHash.setText(f"File Hash: {hash}")
-                if found == True:
-                    #print("why?")
-                    self.Tabs.setCurrentIndex(2)
-        # check if virus total check if on and file is under 32mb
-                    if self.UseVirusTotalApiCheckBox.isChecked() and os.path.getsize(filepath) < 32000000:
-                        self.VirusTotalWidget.show()
                         
-                    else:
-                        # hide Virus total results since it is not needed
-                        self.VirusTotalWidget.hide()
-                    # check if meta defender check if on and file is under 120mb
-                    if self.UseMetaDefenderApiCheckBox.isChecked() and os.path.getsize(filepath) < 120000000:
-                        self.MetaDefenderWidget.show()
-                    else:
-                        # hide meta defender results since it is not needed
-                        self.MetaDefenderWidget.hide()
-                    
-                    self.IsFileVirusY_N.setStyleSheet("color: red")
-                    self.IsFileVirusY_N.setText("YES!")
-                    self.QuarentineFileButton.setVisible(True)
-                    # delete file button
-                    self.QuarentineFileButton.clicked.connect(lambda: quarentineFile(filepath, filename))
-                    # return button
-                    self.ReturnToHomeTabButton.clicked.connect(lambda: self.Tabs.setCurrentIndex(0))
-                
-                else:
-                    self.Tabs.setCurrentIndex(2)
-        # check if virus total check if on and file is under 32mb
-                    if self.UseVirusTotalApiCheckBox.isChecked() and os.path.getsize(filepath) < 32000000:
-                        self.VirusTotalWidget.show()
-                    else:
-                        # hide Virus total results since it is not needed
-                        self.VirusTotalWidget.hide()
-                    # check if meta defender check if on and file is under 120mb
-                    if self.UseMetaDefenderApiCheckBox.isChecked() and os.path.getsize(filepath) < 120000000:
-                        self.MetaDefenderWidget.show()
-                    else:
-                        # hide meta defender results since it is not needed
-                        self.MetaDefenderWidget.hide()
-                        # set text to clean
-                    if suspecious == False:
-                        notify(tray,"No malware found", f"No malware found in {filename}.", "AntiVirus_icoGreen.svg")
-                        self.IsFileVirusY_N.setStyleSheet("color: green")
-                        self.IsFileVirusY_N.setText("NO!")
-                        self.FilePath.setText("Detection Type: None")
-                        scan_end(self, 0, "File scan")
-                        self.QuarentineFileButton.setVisible(False)
-                        # delete file button
-                        #self.QuarentineFileButton.clicked.connect(lambda: removeFile(file))
-                        # return button
-                        self.ReturnToHomeTabButton.clicked.connect(lambda: self.Tabs.setCurrentIndex(0))
-                    else:
-                        self.IsFileVirusY_N.setStyleSheet("color: yellow")
+                    self.FileHash.setText(f"File Hash: {hash}")
+                    if found == True:
+                        #print("why?")
+                        self.Tabs.setCurrentIndex(2)
+            # check if virus total check if on and file is under 32mb
+                        if self.UseVirusTotalApiCheckBox.isChecked() and os.path.getsize(filepath) < 32000000:
+                            self.VirusTotalWidget.show()
+                            
+                        else:
+                            # hide Virus total results since it is not needed
+                            self.VirusTotalWidget.hide()
+                        # check if meta defender check if on and file is under 120mb
+                        if self.UseMetaDefenderApiCheckBox.isChecked() and os.path.getsize(filepath) < 120000000:
+                            self.MetaDefenderWidget.show()
+                        else:
+                            # hide meta defender results since it is not needed
+                            self.MetaDefenderWidget.hide()
+                        
+                        self.IsFileVirusY_N.setStyleSheet("color: red")
                         self.IsFileVirusY_N.setText("YES!")
                         self.QuarentineFileButton.setVisible(True)
                         # delete file button
-                        self.QuarentineFileButton.clicked.connect(lambda: quarentineFile(filepath, filename))
+                        self.QuarentineFileButton.clicked.connect(lambda: removeFile(filepath, filename))
                         # return button
-                        self.ReturnToHomeTabButton.clicked.connect(lambda: self.Tabs.setCurrentIndex(0))     
+                        self.ReturnToHomeTabButton.clicked.connect(lambda: self.Tabs.setCurrentIndex(0))
+                    
+                    else:
+                        self.Tabs.setCurrentIndex(2)
+            # check if virus total check if on and file is under 32mb
+                        if self.UseVirusTotalApiCheckBox.isChecked() and os.path.getsize(filepath) < 32000000:
+                            self.VirusTotalWidget.show()
+                        else:
+                            # hide Virus total results since it is not needed
+                            self.VirusTotalWidget.hide()
+                        # check if meta defender check if on and file is under 120mb
+                        if self.UseMetaDefenderApiCheckBox.isChecked() and os.path.getsize(filepath) < 120000000:
+                            self.MetaDefenderWidget.show()
+                        else:
+                            # hide meta defender results since it is not needed
+                            self.MetaDefenderWidget.hide()
+                            # set text to clean
+                        if suspecious == False:
+                            console.log(F"'{filename}' is safe.")
+                            notify(tray,"No malware found", f"No malware found in {filename}.", "AntiVirus_icoGreen.svg")
+                            self.IsFileVirusY_N.setStyleSheet("color: green")
+                            self.IsFileVirusY_N.setText("NO!")
+                            self.FilePath.setText("Detection Type: None")
+                            scan_end(self, 0, "File scan")
+                            self.QuarentineFileButton.setVisible(False)
+                            # delete file button
+                            #self.QuarentineFileButton.clicked.connect(lambda: removeFile(file))
+                            # return button
+                            self.ReturnToHomeTabButton.clicked.connect(lambda: self.Tabs.setCurrentIndex(0))
+                        else:
+                            self.IsFileVirusY_N.setStyleSheet("color: yellow")
+                            self.IsFileVirusY_N.setText("YES!")
+                            self.QuarentineFileButton.setVisible(True)
+                            # delete file button
+                            self.QuarentineFileButton.clicked.connect(lambda: removeFile(filepath, filename))
+                            # return button
+                            self.ReturnToHomeTabButton.clicked.connect(lambda: self.Tabs.setCurrentIndex(0))     
             else:
                 notify(tray,"File Dialog", "Invalid selected file.", "AntiVirus_ico.ico")
                 
             # display file path
         def decryptFile(current_item):
-            
-    
-        # Adding item on the menu bar 
-            
-            if current_item != None:
-                icon = QtGui.QIcon(current_dir + '\\res\\ico\\AntiVirus_icoWhite.svg') 
-                tray = QtWidgets.QSystemTrayIcon() 
-                tray.setIcon(icon) 
-                tray.setVisible(True)
-                notify(tray, "File Decrypted", f"The file [{current_item}] has been decrypted.", "AntiVirus_icoYellow.svg")
-                tray.setVisible(False)
-                self.listwidget.takeItem(self.listwidget.currentRow())
-                with open(current_dir + "\\settings\\quarantine\\" + current_item, "rb") as filef:
-                    file_content = filef.read()
-                    
-                    
-                decryptF = fernet.decrypt(file_content)
-                
-                with open(current_dir + "\\settings\\quarantine\\" + current_item, "wb") as filef:
-                    filef.write(decryptF)
-            else:
-                msg = QtWidgets.QMessageBox() 
-                msg.setIcon(QtWidgets.QMessageBox.Warning) 
-                msg.setWindowIcon(QtGui.QIcon(current_dir + "\\res\\ico\\antiVirus_ico.svg"))
-                                    
-                                        # setting message for Message Box 
-                msg.setText("No file") 
-                msg.setInformativeText("Click in a name on the list and try again.")
-                                        
-                                        # setting Message box window title 
-                msg.setWindowTitle("Movalabs") 
-                                        
-                                        # declaring buttons on Message Box 
-                msg.setStandardButtons(QtWidgets.QMessageBox.Ok) 
-                                        
-                                        # start the app 
-                                    
-                retval = msg.exec_()
+            print("Removed")
         
-        def quarentineFile(file, filename):
-            
+        def removeFile(file, filename):
+            change_tab_settings(self)
             msg = QtWidgets.QMessageBox() 
             msg.setIcon(QtWidgets.QMessageBox.Warning) 
             msg.setWindowIcon(QtGui.QIcon(current_dir + "\\res\\ico\\antiVirus_ico.svg"))
                                 
                                     # setting message for Message Box 
             msg.setText("Alert") 
-            msg.setInformativeText("If you press 'OK' the file will be encrypted and renamed to other name. Continue?")
+            msg.setInformativeText("If you press 'OK' the file will deleted. Continue?")
                                     
                                     # setting Message box window title 
             msg.setWindowTitle("Movalabs") 
@@ -1237,35 +1368,24 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
             retval = msg.exec_()
             
             if retval == 1024:
-                change_tab_quarantine(self)
+                try:
+                    os.remove(file)
+                    
+                    icon = QtGui.QIcon(current_dir + '\\res\\ico\\AntiVirus_icoGreen.svg') 
+                    tray = QtWidgets.QSystemTrayIcon() 
+                    tray.setIcon(icon) 
+                    tray.setVisible(True)
+                    notify(tray, "File Neutralized", f"The file [{file}] has been removed", "AntiVirus_icoGreen.svg")
+                    tray.setVisible(False)
+                except:
+                    icon = QtGui.QIcon(current_dir + '\\res\\ico\\AntiVirus_icoGreen.svg') 
+                    tray = QtWidgets.QSystemTrayIcon() 
+                    tray.setIcon(icon) 
+                    tray.setVisible(True)
+                    notify(tray, "File NOT Neutralized", f"The file [{file}] cannot be removed.", "AntiVirus_icoRed.svg")
+                    tray.setVisible(False)
                 
                 
-                '''fileName, old_extension = os.path.splitext(filename)
-                new_name = fileName + ".movalabs"
-                
-                
-                
-                os.rename(file, new_name)'''
-                with open(file, "rb") as filef:
-                    file_content = filef.read()
-                
-                icon = QtGui.QIcon(current_dir + '\\res\\ico\\AntiVirus_icoGreen.svg') 
-                tray = QtWidgets.QSystemTrayIcon() 
-                tray.setIcon(icon) 
-                tray.setVisible(True)
-                notify(tray, "File Neutralized", f"The file [{file}] has been moved to quarantine.", "AntiVirus_icoGreen.svg")
-                tray.setVisible(False)
-                
-                crypt = fernet.encrypt(file_content)
-                #print(crypt)
-                with open(file, "wb") as filef:
-                    filef.write(crypt)
-                quarantine_itens = os.listdir(current_dir + "\\settings\\quarantine\\")
-                self.listwidget.clear()
-                os.rename(file,current_dir + "\\settings\\quarantine\\" + filename)
-                decrypt = fernet.decrypt(crypt)
-                #print(decrypt)
-                itens(self)
             else:
                 pass
             
@@ -1534,7 +1654,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
         self.label.setText(_translate("MainWindow", "Virus?"))
         self.IsFileVirusY_N.setText(_translate("MainWindow", "YES"))
         self.ReturnToHomeTabButton.setText(_translate("MainWindow", "Return"))
-        self.QuarentineFileButton.setText(_translate("MainWindow", "Quarentine File"))
+        self.QuarentineFileButton.setText(_translate("MainWindow", "Remove File"))
         self.label_3.setText(_translate("MainWindow", "Virus Total score"))
         self.DetectionsText.setText(_translate("MainWindow", "0 | 0"))
         self.label_5.setText(_translate("MainWindow", "Detections"))
@@ -1590,11 +1710,11 @@ def update(type="app"):
 
 
     if type == "app":
-        if AppVersion__ < LatestVersion__:
-            return True;
+        if AppVersion__ == LatestVersion__:
+            return False;
             
         else:
-            return False;
+            return True;
     
     else:
         __DataGIT = "https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/dataset.ini"
@@ -1611,73 +1731,15 @@ def update(type="app"):
                
     
 
-    
+        
 
-def __modules__Verify():
-    __missing = 0
-    
-    __updaterResult = update()
-    __updaterDataResult = update("data")
-    
-    DatasetVersion__ = getDatasetVersion()
-    
-    if __updaterDataResult == True:
-        
-        print(f"[-] Dataset Version: {DatasetVersion__} (NEED UPDATE)")
-        __missing += 1
-        
-    else:
-        print(f"[*] Dataset Version: {DatasetVersion__}")
-    
-    if __updaterResult == True:
-        print(f"[-] Current Version: {AppVersion__} (NEED UPDATE)")
-        __missing += 1
-    
-    else:
-        print(f"[*] Current Version: {AppVersion__}")
-    
-    if os.path.isfile(current_dir + "\\new.yara"):
-        
-        print("[*] Yara: OK")
-    else:
-        __missing += 1
-        print("[-] Yara: ERROR")
-        
-    if os.path.isdir(current_dir + "\\res\\SideBar"):
-        
-        print("[*] SideBar folder: OK")
-        
-        if os.path.isfile(current_dir + "\\res\\SideBar\\home-outlinedWHITE.svg") and os.path.isfile(current_dir + "\\res\\SideBar\\settings_oWHITE.svg") and os.path.isfile(current_dir + "\\res\\SideBar\\quarantineWHITE.svg"):
-            print("[*] SideBar icons: OK")
-        
-        else:
-            print("[-] SideBar icons: ERROR")
-            __missing += 1
-        
-    else:
-        __missing += 1
-        print("[-] SideBar icons: ERROR")
-           
-    if os.path.isfile(settings_path):
-        print("[*] Settings: OK")
-        
-    else:
-        __missing += 1
-        print("[-] Settings: CRITICAL ERROR")
-    
-    if __missing == 0:
-        print("[OK] Loaded")
-        
-    else:
-        
-        print(F"[ERROR] Cannot load. \n{__missing} erros")
-        exit()
+
     
 if __name__ == "__main__":
     
     
 
-    __modules__Verify()
+    verifyModules()
     
     app = QtWidgets.QApplication(sys.argv)
     
