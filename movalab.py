@@ -12,8 +12,8 @@ import urllib.request
 from time import sleep
 from rich.console import Console
 
-
 import sqlite3
+
 
 console = Console()
 tasks = [f"Module {n}" for n in ["App"]]
@@ -47,7 +47,7 @@ def mode():
         __VersionGIT = "https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini"
         __Page = urllib.request.urlopen(__VersionGIT)
         LatestVersion__ = f"{__Page.read()}".replace("b","").replace("'","").replace("n","").replace("\\","")
-        AppVersion__ = "1.1.1"
+        AppVersion__ = "1.1.2"
     
     except:
         
@@ -290,7 +290,7 @@ def notify(tray, message, description, image):
     timer.start(4000)
 
 def list_files(dir, self, tray):
-    
+
     self.progress.setVisible(True)
     
     historyFilesDetected = []
@@ -329,7 +329,7 @@ def list_files(dir, self, tray):
                 mode()    
                 
             
-            
+    
     notify(tray,"Starting scan", f"A scan for the folder [{dir}] has been started. The scan mabe take a lot of time", "none")
  
     __totalFiles =sum(len(files) for _, _, files in os.walk(dir))            
@@ -337,14 +337,12 @@ def list_files(dir, self, tray):
     
     
     console.log(f"[green][[white]+[green]][white] Starting Folder scan! [yellow]{__totalFiles}[white] files")
+     
     with console.status(f"[bold green]Running a scan in '{dir}'...") as status:
-  
-        
             
         for root, dirs, files in os.walk(dir):
             
-            
-            
+    
             try:
                 total += 1
                 
@@ -352,6 +350,8 @@ def list_files(dir, self, tray):
                 fulltotal = total - 1
                 
                 for file_name in files:
+                    
+
                     __filesVerificated += 1;
                     self.progress.setValue(__filesVerificated)
                     file = os.path.join(root, file_name)
@@ -1022,8 +1022,15 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                     found = True;
                                     
                                     threat = match.meta.get('threat', '?')
+                                    
+                                    if threat == "?":
+                                        threat = match.meta.get('malware_family', "?")
+                                        
+                                        if threat == "?": 
+                                            threat = "UDS:DangerousObject.multi.generic"
+                                            
                                     console.log(F"[red]'{filename}'[white] is infected with [red]'{threat}'")
-                                    scan_end(self, 1, f"Scan for the file {filepath}")
+                                    scan_end(self, 1, f"File scan: {filepath}")
                                     notify(tray,"Malware Detected", f"Type: {threat} \nDetection: Yara rules", "AntiVirus_icoRed.svg")
                                     self.FilePath.setText(f"Detection Type: Yara Rules ({threat})")
                                     
@@ -1046,7 +1053,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                     threat = splited[1]
                                     found = True
                                     console.log(f"[red]'{filename}'[white] is infected with [red]'{threat}'")
-                                    scan_end(self, 1, f"Scan for the file {filepath}")
+                                    scan_end(self, 1, f"File scan: {filepath}")
                                     notify(tray,"Malware Detected", f"Type: {threat} \nDetection: Hash list", "AntiVirus_icoRed.svg")
 
                                         
@@ -1057,10 +1064,12 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                     __InDB = db_cursor.execute(f"SELECT hash, name FROM HashDB WHERE hash = '{hash}'").fetchone()
                         
                     if isinstance(__InDB, tuple) and found != True:
-                        found = True    
+                        
+                        found = True;
+                            
                         console.log(f"[red]'{filename}'[white] is infected with [red]'{__InDB[1]}'")
-                        scan_end(self, 1, f"Scan for the file {filepath}")
-                        notify(tray,"Malware Detected", f"Type: {threat} \nDetection: Hash list", "AntiVirus_icoRed.svg")
+                        scan_end(self, 1, f"File scan: {filepath}")
+                        notify(tray,"Malware Detected", f"Type: {__InDB[1]} \nDetection: Hash list", "AntiVirus_icoRed.svg")
                     
                     
                     
@@ -1072,11 +1081,14 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                             for hashes in line.split():
                                 
                                 if hashes == hash:
+                                    
                                     notify(tray,"Malware Found", "Detection type: Hash List", "AntiVirus_icoRed.svg")
-                                    self.FilePath.setText("Detection Type:  Hash List")
                                     console.log(F"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.HashList'")
-                                    scan_end(self, 1, f"Scan for the file {filepath}")
-                                    found = True
+                                    
+                                    self.FilePath.setText("Detection Type:  Hash List")
+                                    scan_end(self, 1, f"File scan: {filepath}")
+                                    
+                                    found = True;
                                     
                                     pass;
                                 
@@ -1117,7 +1129,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                         if detections > 10:
                                             console.log(F"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
                                             
-                                            scan_end(self, 1, f"Scan for the file {filepath}")
+                                            scan_end(self, 1, f"File scan: {filepath}")
                                             notify(tray,"Malware Found", "Detection type: VirusTotal", "AntiVirus_icoRed.svg")
                                             self.FilePath.setText("Detection Type:  Virustotal")
                                             self.DetectionsText.setStyleSheet("color: red")
@@ -1125,7 +1137,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                             found = True
                                             
                                         elif detections > 4:
-                                            scan_end(self, 1, f"Scan for the file {filepath}")
+                                            scan_end(self, 1, f"File scan: {filepath}")
                                             console.log(F"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
                                             
                                             notify(tray,"Malware Found", "Detection type: VirusTotal", "AntiVirus_icoRed.svg")
@@ -1135,7 +1147,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                             found = True;
                                             
                                         elif detections > not_detections:
-                                            scan_end(self, 1, f"Scan for the file {filepath}")
+                                            scan_end(self, 1, f"File scan: {filepath}")
                                             console.log(F"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
                                             
                                             notify(tray,"Malware Found", "Detection type: VirusTotal", "AntiVirus_icoRed.svg")
@@ -1263,7 +1275,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                 # if detections more than half of not detections print red
                                
                                 if M_detections > 3:
-                                    scan_end(self, 1, f"Scan for the file {filepath}")
+                                    scan_end(self, 1, f"File scan: {filepath}")
                                     console.log(F"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
                                     
                                     found = True
@@ -1276,7 +1288,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                     else:
                                         pass
                                 if M_detections > half_M_not_detections:
-                                    scan_end(self, 1, f"Scan for the file {filepath}")
+                                    scan_end(self, 1, f"File scan: {filepath}")
                                     console.log(F"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
                                     
                                     self.FilePath.setText("Detection Type:  MetaDefender")
@@ -1360,7 +1372,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                             self.IsFileVirusY_N.setStyleSheet("color: green")
                             self.IsFileVirusY_N.setText("NO!")
                             self.FilePath.setText("Detection Type: None")
-                            scan_end(self, 0, f"Scan for the file {filepath}")
+                            scan_end(self, 0, f"File scan: {filepath}")
                             self.QuarentineFileButton.setVisible(False)
                             # delete file button
                             #self.QuarentineFileButton.clicked.connect(lambda: removeFile(file))
@@ -1379,7 +1391,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                 
             # display file path
         def decryptFile(current_item):
-            print("Removed")
+            console.log(f"[red]The option 'decryptFile' has been disabled for security questions.")
         
         def removeFile(file, filename):
             change_tab_settings(self)
