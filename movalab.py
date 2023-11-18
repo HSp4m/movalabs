@@ -11,9 +11,8 @@ from datetime import datetime
 import urllib.request
 from time import sleep
 from rich.console import Console
-
 import sqlite3
-
+import getpass
 
 console = Console()
 tasks = [f"Module {n}" for n in ["App"]]
@@ -24,6 +23,14 @@ historyFilesDetected = []
 historyDetectionsPF = []
 historyResult = []
 config = configparser.ConfigParser()
+current_dir = os.path.dirname(__file__)
+settings_path = current_dir + "/settings/settings.ini"
+quarantine_path = current_dir + "/settings/quarantine/"
+meta_defender_api = "https://api.metadefender.com/v4/hash/"
+QuickscanFolders = ["C:\\Windows\\Temp", f"C:\\Users\\{getpass.getuser()}\\AppData\\Local\\Temp", f"C:\\Users\\{getpass.getuser()}\\Downloads", f"C:\\Users\\{getpass.getuser()}\\Documents", "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Startup", "C:\\Windows\\System32", "C:\\Program Files", "C:\Program Files (x86)"]
+
+
+
 
 def mode():
     global rules;
@@ -37,11 +44,36 @@ def mode():
     global db_cursor;
     global LatestVersion__;
     global AppVersion__;
-
+    global md5List;
+    global sha256List;
 
     __NaN = 0
     __missing = 0
     
+    try:
+        
+        with open(current_dir + "\\hash\\md5.txt", "r") as hashFile:
+            md5List = hashFile.read()
+        
+    except:
+        
+        console.log(f"[red]hash compile[white] Returned a unexpected error. Verify if the 'hash/md5.txt' file exist or open this app on powershell")
+        sleep(1)
+        
+        exit();      
+                              
+    try:
+        
+        with open(current_dir + "\\hash\\256.txt", "r") as hashF:
+            sha256List = hashF.read()
+            
+    except:
+        
+        console.log(f"[red]hash compile[white] Returned a unexpected error. Verify if the 'hash/256.txt' file exist or open this app on powershell")
+        sleep(1)
+        
+        exit();   
+        
     try:
 
         __VersionGIT = "https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini"
@@ -181,26 +213,151 @@ def mode():
         exit()
         
 
+
 def verifyModules():
     with console.status("[bold green]Working on app load...") as status:
-        while tasks:
-            task = tasks.pop(0)
-            sleep(1)
-            mode()
+       mode() 
 
 
+def getMalwareType256(hash):
+    with open(current_dir + "\\hash\\256.txt", "r") as hashF:
+        for line in hashF:
+                                    
+            for hashes in line.split():
+                splited = hashes.split(":")
+                                        
+                if splited[0] == hash:
+                    threat = splited[1]
+                                
+                    return threat;
+                                            
 
+                                            
+                else:
+                    continue 
 
+def quickScan(folders, self):
+    __missing = 0;
+    __founded = 0;
+    __foundInFolder = 0;
+    historyFilesDetected = []
+    
+    icon = QtGui.QIcon(current_dir + '\\res\\ico\\AntiVirus_icoWhite.svg') 
+    tray = QtWidgets.QSystemTrayIcon() 
+    tray.setIcon(icon) 
+    tray.setVisible(True)                   
+    tray.show()
+    
+    self.resultWidget.clear()
+    
+    if self.AutomaticUpdates.isChecked() == True:
+        with console.status(f"[bold green]Verifying for updates..."):
+            __updaterResult = update()
+            __updaterDataResult = update("data")
+            
+            if __updaterResult == True:
+                console.log(f"[red]Module App[white] Missing update")
+                __missing += 1
+            
+            if __updaterDataResult == True:
+                console.log(f"[red]Module Dataset[white] Missing update")
+                __missing += 1
+                
+            if __missing == 0:
+                    
+                console.log(f"[green]Scan will be started soon...")
+                
+            else:
+                sleep(1)
+                console.log(f"[red]Scan cannot be started. {__missing} updates missing!")
+                sleep(1)
+                console.log(f"[yellow]A module scan will be started soon.")
+                    
+                mode()    
+                
+    with console.status("[bold green] Quick scan in progress..."):
+        notify(tray,"Starting a quick scan", "A quick scan has been started.", "none")
+        
+        __totalFolders = len(folders);
+        
+        for folder in folders:
+            __foundInFolder = 0;
+            __totalFiles =sum(len(files) for _, _, files in os.walk(folder))
+            console.log(f"Processing folder: '{folder}' itens: '{__totalFiles}'")
+            
+            for root, dirs, files in os.walk(folder):
+                
+                    
+                    for file_name in files:
+                        file = os.path.join(root, file_name)
+                        fileR = file.replace("\\", "/")
+                            
+                        try:
+                            
+                            
+                            with open(file,'rb') as filef:
+                                
+                                file_content = filef.read()
+                                matchesFolder = rules.match(data=file_content)
+                                
+                            hashMD5 = hashlib.md5(file_content).hexdigest()
+                            hashSha256 = hashlib.sha256(file_content).hexdigest()
+                            
+                            __InDB = db_cursor.execute(f"SELECT hash, name FROM HashDB WHERE hash = '{hash}'").fetchone()
+                            
+                            if isinstance(__InDB, tuple) and file_name not in historyFilesDetected:
+                                __foundInFolder += 1;
+                                __founded += 1;
+                                console.log(f"[red]'{file_name}'[white] is infected with [red]'{__InDB[1]}'")
+                                historyFilesDetected.append(file_name)
+                                self.resultWidget.insertItem(0,f"{file} ({__InDB[1]})")
+                                self.Tabs.setCurrentIndex(3)
+                                            
 
-current_dir = os.path.dirname(__file__)
-settings_path = current_dir + "/settings/settings.ini"
-quarantine_path = current_dir + "/settings/quarantine/"
-meta_defender_api = "https://api.metadefender.com/v4/hash/"
-
-
-
-
-
+                            
+                            if hashMD5 in md5List and file_name not in historyFilesDetected:
+                                historyFilesDetected.append(file_name)
+                                __founded += 1;
+                                __foundInFolder += 1;
+                                console.log(f"[red]'{file_name}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
+                                self.resultWidget.insertItem(0,f"{file} (UDS:DangerousObject.multi.generic)")
+                                self.Tabs.setCurrentIndex(3)
+                            
+                            if hashSha256 in sha256List and file_name not in historyFilesDetected:
+                                __founded += 1;
+                                historyFilesDetected.append(file_name)
+                                threat = getMalwareType256(hashSha256)
+                                console.log(f"[red]'{file_name}'[white] is infected with [red]'{threat}'")
+                                self.resultWidget.insertItem(0,f"{file} ({threat})")
+                                self.Tabs.setCurrentIndex(3)
+                            
+                            if matchesFolder != [] and file_name not in historyFilesDetected:
+                                __founded += 1;
+                                __foundInFolder += 1;
+                                for match in matchesFolder:
+                                    historyFilesDetected.append(file_name)
+                                    threat = match.meta.get('threat', "?")
+                                    
+                                    if threat == "?":
+                                        threat = match.meta.get('malware_family', "?")
+                                        if threat == "?":
+                                            threat = "UDS:DangerousObject.multi.generic"
+                                            
+                                    console.log(f"[red]'{file_name}'[white] is infected with [red]'{threat}'")          
+                                    self.resultWidget.insertItem(0,f"{file} ({threat})")
+                                    self.Tabs.setCurrentIndex(3)
+                                    
+                        except:
+                            
+                            console.log(f"[red] '{file}' has been skipped (Permission denied)") 
+            
+            console.log(f"'{folder}' Has been processed. '{__foundInFolder}' malwares found")
+                         
+        if __founded == 0:
+            console.log(f"[bold green] No malwares found.")
+        
+        else:
+            console.log(f"[red]'{__founded}' malwares found.")    
     
 def scaninfo(self):
     historyResult = []
@@ -211,7 +368,6 @@ def scaninfo(self):
     
     __fDetections = current_item.split(", ")
     __fileDetections = __fDetections[1].split(" ")[0]
-    
     console.log(f"[green][[white]+[green]][white] Scan fetch started.")
     with console.status(f"[bold green]Getting info of {__fileDetections} malwares...") as status:
         
@@ -361,31 +517,19 @@ def list_files(dir, self, tray):
                                 file_content = filef.read()
                                 matchesFolder = rules.match(data=file_content)
                         
-                        hash = hashlib.md5(file_content).hexdigest()
-                        hash256 = hashlib.sha256(file_content).hexdigest()
+                        hashMD5 = hashlib.md5(file_content).hexdigest()
+                        hashSha256 = hashlib.sha256(file_content).hexdigest()
                         
-                        
-                        
-                        with open(current_dir + "\\hash\\256.txt", "r") as hashF:
+                        if hashSha256 in sha256List and file_name not in historyFilesDetected:
                             
-                            for line in hashF:
-                                
-                                for hashes in line.split():
-                                    splited = hashes.split(":")
-                                    
-                                    if splited[0] == hash256 and file_name not in historyFilesDetected:
-                                        historyFilesDetected.append(file_name)
-                                        threat = splited[1]
+                            historyDetections.insert(0,f"{fileR}: {threat}")
+                            historyFilesDetected.append(file_name)
+                            threat = getMalwareType256(hashSha256)
                             
-                                        console.log(f"[red]'{file_name}'[white] is infected with [red]'{threat}'")
-                                        
-                                        self.resultWidget.insertItem(fulltotal,f"{file_name} ({threat})")
-                                        self.Tabs.setCurrentIndex(3)
-                                        
-                                        historyDetections.insert(0,f"{fileR}: {threat}")
-                                        
-                                    else:
-                                        continue                    
+                            console.log(f"[red]'{file_name}'[white] is infected with [red]'{threat}'")
+                            
+                            self.resultWidget.insertItem(fulltotal,f"{file_name} ({threat})")
+                            self.Tabs.setCurrentIndex(3)
 
                         
                         __InDB = db_cursor.execute(f"SELECT hash, name FROM HashDB WHERE hash = '{hash}'").fetchone()
@@ -400,28 +544,21 @@ def list_files(dir, self, tray):
                             self.Tabs.setCurrentIndex(3)
                                         
                             historyDetections.insert(0,f"{fileR}: {__InDB[1]}")
-                            
-                        with open(current_dir + "\\hash\\md5.txt", "r") as hashFile:
                         
+                        if hashMD5 in md5List and file_name not in historyFilesDetected:
                             
-                            for line in hashFile:
-                                
-                                for hashes in line.split():
-                                    
-                                    if hashes == hash and file_name not in historyFilesDetected:
-                                        historyFilesDetected.append(file_name)
+                            historyFilesDetected.append(file_name)
+                            historyDetections.insert(0,f"{fileR}: UDS:DangerousObject.multi.generic")
+                            
+                            console.log(f"[red]'{file_name}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
+                            
+                            self.resultWidget.insertItem(fulltotal,f"{file_name} (UDS:DangerousObject.multi.generic)")
+                            self.Tabs.setCurrentIndex(3)
                                         
                             
-                                        console.log(f"[red]'{file_name}'[white] is infected with [red]'UDS:DangerousObject.HashList'")
-                                        
-                                        self.resultWidget.insertItem(fulltotal,f"{file_name} (UDS:DangerousObject.HashList)")
-                                        self.Tabs.setCurrentIndex(3)
-                                        
-                                        historyDetections.insert(0,f"{fileR}: UDS:DangerousObject.HashList")
-                                    else:
-                                        continue
+
                                     
-                        if matchesFolder != []:
+                        if matchesFolder != [] and file_name not in historyFilesDetected:
                             
                             detected = 1;
                             self.Tabs.setCurrentIndex(3)
@@ -431,31 +568,20 @@ def list_files(dir, self, tray):
                                     
                                 threat = match.meta.get('threat', "?")
                                     
-                                if file_name not in historyFilesDetected:
+                                
+                                if threat == "?":
+                                    threat = match.meta.get('malware_family', "?")
                                     if threat == "?":
-                                        threat = match.meta.get('malware_family', "?")
-                                        if threat == "?":
-                                            threat = "UDS:DangerousObject.multi.generic"
-                                            historyFilesDetected.append(file_name)
-                                            self.resultWidget.insertItem(fulltotal,f"{file_name} ({threat})")
+                                        threat = "UDS:DangerousObject.multi.generic"
 
-                                            historyDetections.insert(0,f"{fileR}: {threat}")
-                                        else:    
-                                            historyFilesDetected.append(file_name)
-                                            self.resultWidget.insertItem(fulltotal,f"{file_name} ({threat})")
 
-                                            historyDetections.insert(0,f"{fileR}: {threat}")
-                                    else:
-                                        threat = match.meta.get('threat', "?")
-                                        historyFilesDetected.append(file_name)
-                                        self.resultWidget.insertItem(fulltotal,f"{file_name} ({threat})")
 
-                                        historyDetections.insert(0,f"{fileR}: {threat}")
                                         
-                                        
-                                        
-                            
-                            console.log(f"[red]'{file_name}'[white] is infected with [red]'{threat}'")
+                                historyFilesDetected.append(file_name)
+                                self.resultWidget.insertItem(fulltotal,f"{file_name} ({threat})")
+
+                                historyDetections.insert(0,f"{fileR}: {threat}")
+                                console.log(f"[red]'{file_name}'[white] is infected with [red]'{threat}'")
                     else:
                         continue 
         
@@ -464,26 +590,28 @@ def list_files(dir, self, tray):
     
     
     if len(historyFilesDetected) == 0:
+        
         self.progress.setVisible(False)
         historyDetectionsPF.append(f"{fileR}: {len(historyFilesDetected)}")
         scan_end(self, len(historyFilesDetected), f"Folder scan: {dir}")
         historyPaths.append(dir)
+        
+        notify(tray,"No malware found", f"No malware found in [{dir}].", "AntiVirus_icoGreen.svg")
+        sleep(1)
+        console.log(f"No malware found in '{dir}'")
                        
     else:
+        
         self.progress.setVisible(False)
         historyDetectionsPF.append(f"{fileR}: {len(historyFilesDetected)}")
         scan_end(self, len(historyFilesDetected), f"Folder scan: {dir}") 
         historyPaths.append(dir)
-            
-    if len(historyFilesDetected) == 0:
-
-        notify(tray,"No malware found", f"No malware found in [{dir}].", "AntiVirus_icoGreen.svg")
-        sleep(1)
-        console.log(f"No malware found in '{dir}'")
-    else:
+        
         notify(tray,"Malware found", f"Open the app to see the results.", "AntiVirus_icoRed.svg")
         sleep(1)
         console.log(f"[red]{len(historyFilesDetected)}[white] malwares found in [red]'{dir}'")
+            
+        
         
         
         
@@ -496,13 +624,7 @@ class Ui_2(object):
     def setup(self,Dialog):
         self.setWindowIcon(QtGui.QIcon(current_dir + "\\res\\ico\\AntiVirus_ico.svg"))
         
-    
-        '''t = self.vrkeybox = QtWidgets.QLineEdit(Dialog)
-        t.move(150, 20)
-        t.resize(280,40)
-        Dialog.setObjectName("Dialog")
-        
-        Dialog.resize(600, 300)'''
+
         
 class Ui_Dialog(object):
     
@@ -606,6 +728,14 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
         self.SelectFolderButton.setFont(font)
         self.SelectFolderButton.setFlat(False)
         self.SelectFolderButton.setObjectName("SelectFolderButton")
+        
+        self.QuickScanButton = QtWidgets.QPushButton(self.HomeTab)
+        self.QuickScanButton.setGeometry(QtCore.QRect(180, 150, 121, 31))
+        font = QtGui.QFont()
+        font.setPointSize(11)
+        self.QuickScanButton.setFont(font)
+        self.QuickScanButton.setFlat(False)
+        self.QuickScanButton.setObjectName("QuickScanButton")
         
         self.Tabs.addWidget(self.HomeTab)
         self.SettingsTab = QtWidgets.QWidget()
@@ -1037,28 +1167,18 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                     
                     
                         
-                    hash = hashlib.md5(file_content).hexdigest()
-                    hash256 = hashlib.sha256(file_content).hexdigest()
+                    hashMD5 = hashlib.md5(file_content).hexdigest()
+                    hashSha256 = hashlib.sha256(file_content).hexdigest()
                     file.close()    
                         
-                        
-                    with open(current_dir + "\\hash\\256.txt", "r") as hashF:
-                            
-                        for line in hashF:
-                                
-                            for hashes in line.split():
-                                splited = hashes.split(":")
-                                    
-                                if splited[0] == hash256 and found != True:
-                                    threat = splited[1]
-                                    found = True
-                                    console.log(f"[red]'{filename}'[white] is infected with [red]'{threat}'")
-                                    scan_end(self, 1, f"File scan: {filepath}")
-                                    notify(tray,"Malware Detected", f"Type: {threat} \nDetection: Hash list", "AntiVirus_icoRed.svg")
-
+                    if hashSha256 in sha256List and found != True:
+                            found = True;
+                            threat = getMalwareType256(hashSha256)
+                            console.log(f"[red]'{filename}'[white] is infected with [red]'{threat}'")
+                            scan_end(self, 1, f"File scan: {filepath}")
+                            notify(tray,"Malware Detected", f"Type: {threat} \nDetection: Hash list", "AntiVirus_icoRed.svg")
+                            self.FilePath.setText("Detection Type: Hash List")
                                         
-                                else:
-                                    continue                    
 
                         
                     __InDB = db_cursor.execute(f"SELECT hash, name FROM HashDB WHERE hash = '{hash}'").fetchone()
@@ -1066,39 +1186,21 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                     if isinstance(__InDB, tuple) and found != True:
                         
                         found = True;
-                            
+                        self.FilePath.setText("Detection Type: Hash List")    
                         console.log(f"[red]'{filename}'[white] is infected with [red]'{__InDB[1]}'")
                         scan_end(self, 1, f"File scan: {filepath}")
                         notify(tray,"Malware Detected", f"Type: {__InDB[1]} \nDetection: Hash list", "AntiVirus_icoRed.svg")
                     
                     
                     
-                    with open("hash\\md5.txt", "r") as hashFile:
-                        
-                        
-                        for line in hashFile:
-                            #print(line)
-                            for hashes in line.split():
-                                
-                                if hashes == hash:
-                                    
-                                    notify(tray,"Malware Found", "Detection type: Hash List", "AntiVirus_icoRed.svg")
-                                    console.log(F"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.HashList'")
-                                    
-                                    self.FilePath.setText("Detection Type:  Hash List")
-                                    scan_end(self, 1, f"File scan: {filepath}")
-                                    
-                                    found = True;
-                                    
-                                    pass;
-                                
-                            if found == True:
-                                pass;
-                            
-                    if found == True:
-                            pass;      
-                                
-                    hashFile.close()
+                    if hashMD5 in md5List and found != True:
+                            found = True;
+                            console.log(f"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
+                            notify(tray,"Malware Found", "Detection type: Hash List", "AntiVirus_icoRed.svg")
+                            self.FilePath.setText("Detection Type: Hash List")
+                            scan_end(self, 1, f"File scan: {filepath}")
+                    
+                    
                                 
                     
                     detections = 0;
@@ -1578,7 +1680,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
             
             with open(settings_path, 'w') as configfile:
                 config.write(configfile)
-        #SelectFolderButton
+        
         def browseFolder(MainWindow, self):
             icon = QtGui.QIcon(current_dir + '\\res\\ico\\AntiVirus_icoWhite.svg') 
     
@@ -1634,6 +1736,8 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
         self.LightModeButton.setVisible(False)
         
         self.SelectFolderButton.clicked.connect(lambda: browseFolder(MainWindow,self))
+        
+        self.QuickScanButton.clicked.connect(lambda: quickScan(QuickscanFolders, self))
         
         self.RemoveFileButton.clicked.connect(lambda: decryptFile(current_item))
         
@@ -1710,6 +1814,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
         self.QuarantineTitle.setText(_translate("MainWindow", "Quarantine"))
         self.RemoveFileButton.setText(_translate("MainWindow", "Remove file"))
         self.SelectFolderButton.setText(_translate("MainWindow", "Select folder"))
+        self.QuickScanButton.setText(_translate("MainWindow", "Quick scan"))
         
      
         
