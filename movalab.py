@@ -79,7 +79,7 @@ def mode():
         __VersionGIT = "https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini"
         __Page = urllib.request.urlopen(__VersionGIT)
         LatestVersion__ = f"{__Page.read()}".replace("b","").replace("'","").replace("n","").replace("\\","")
-        AppVersion__ = "1.1.2"
+        AppVersion__ = "1.2.0"
     
     except:
         
