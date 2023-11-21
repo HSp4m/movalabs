@@ -79,7 +79,7 @@ def mode():
         __VersionGIT = "https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini"
         __Page = urllib.request.urlopen(__VersionGIT)
         LatestVersion__ = f"{__Page.read()}".replace("b","").replace("'","").replace("n","").replace("\\","")
-        AppVersion__ = "1.2.0"
+        AppVersion__ = "1.2.1"
     
     except:
         
@@ -560,28 +560,28 @@ def list_files(dir, self, tray):
                                     
                         if matchesFolder != [] and file_name not in historyFilesDetected:
                             
-                            detected = 1;
+                            
                             self.Tabs.setCurrentIndex(3)
                             for match in matchesFolder:
 
+                                if file_name not in historyFilesDetected:    
                                     
-                                    
-                                threat = match.meta.get('threat', "?")
-                                    
-                                
-                                if threat == "?":
-                                    threat = match.meta.get('malware_family', "?")
-                                    if threat == "?":
-                                        threat = "UDS:DangerousObject.multi.generic"
-
-
-
+                                    threat = match.meta.get('threat', "?")
                                         
-                                historyFilesDetected.append(file_name)
-                                self.resultWidget.insertItem(fulltotal,f"{file_name} ({threat})")
+                                    
+                                    if threat == "?":
+                                        threat = match.meta.get('malware_family', "?")
+                                        if threat == "?":
+                                            threat = "UDS:DangerousObject.multi.generic"
 
-                                historyDetections.insert(0,f"{fileR}: {threat}")
-                                console.log(f"[red]'{file_name}'[white] is infected with [red]'{threat}'")
+
+
+                                            
+                                    historyFilesDetected.append(file_name)
+                                    self.resultWidget.insertItem(fulltotal,f"{file_name} ({threat})")
+
+                                    historyDetections.insert(0,f"{fileR}: {threat}")
+                                    console.log(f"[red]'{file_name}'[white] is infected with [red]'{threat}'")
                     else:
                         continue 
         
