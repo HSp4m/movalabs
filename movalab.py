@@ -192,13 +192,13 @@ def mode(status=None):
     __NaN = 0
     __missing = 0
     
-    compileHashes();
+    
         
     try:
 
         __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini")
         LatestVersion__ = __Page.content.decode('utf-8')
-        AppVersion__ = "1.2.5"
+        AppVersion__ = "1.2.6"
     
     except:
         
@@ -266,15 +266,11 @@ def mode(status=None):
         
         else:
             console.log(f"[red]Update cannot be completed.")
-            
-            
-        
-            
-    
+
     else:
         console.log(f"[green]Module App[white] ok")
         
-            
+    compileHashes();        
 
     if os.path.isfile(current_dir + "\\new.yara"):
             
