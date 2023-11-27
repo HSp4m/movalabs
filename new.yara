@@ -3,6 +3,182 @@ import "hash"
 import "pe"
 import "dotnet"
 
+rule EnigmaPacker_Rare {
+   meta:
+      description = "Detects an ENIGMA packed executable"
+      license = "Detection Rule License 1.1 https://github.com/Neo23x0/signature-base/blob/master/LICENSE"
+      author = "Florian Roth (Nextron Systems)"
+      reference = "Internal Research"
+      date = "2017-04-27"
+      score = 60
+      hash1 = "77be6e80a4cfecaf50d94ee35ddc786ba1374f9fe50546f1a3382883cb14cec9"
+      threat = "Mal:Trojan.Gen"
+   strings:
+      $s1 = "P.rel$oc$" fullword ascii
+      $s2 = "ENIGMA" fullword ascii
+   condition:
+      ( uint16(0) == 0x5a4d and filesize < 4000KB and all of them )
+}
+
+rule Enigma_Protected_Malware_May17_RhxFiles {
+   meta:
+      description = "Auto-generated rule - file RhxFiles.dll"
+      author = "Florian Roth (Nextron Systems) with the help of binar.ly"
+      reference = "Internal Research"
+      date = "2017-05-02"
+      hash1 = "2187d6bd1794bf7b6199962d8a8677f19e4382a124c30933d01aba93cc1f0f15"
+      threat = "Mal:Trojan.Gen"
+   strings:
+      $op1 = { bd 9c 74 f6 7a 3a f7 94 c5 7d 7c 7c 7c 7e ae 73 }
+      $op2 = { 82 62 6b 6b 6b 68 a5 ea aa 69 6b 6b 6b 3a 3b 94 }
+      $op3 = { 7c 7c c5 7d 7c 7c 7c 7e ae 73 f9 79 7c 7c 7c f6 }
+   condition:
+      ( uint16(0) == 0x5a4d and filesize < 4000KB and all of them )
+}
+
+rule Enigma_Protected_Malware {
+   meta:
+      description = "Detects samples packed by Enigma Protector"
+      author = "Florian Roth (Nextron Systems) with the help of binar.ly"
+      reference = "https://goo.gl/OEVQ9w"
+      date = "2017-02-03"
+      hash1 = "d4616f9706403a0d5a2f9a8726230a4693e4c95c58df5c753ccc684f1d3542e2"
+      threat = "Mal:Trojan.Gen"
+   strings:
+      $s1 = { 5d 5d 5d aa bf 5e 95 d6 dc 51 5d 5d 5d 5e 98 0d }
+      $s2 = { 52 d9 47 5d 5d 5d dd a6 b4 52 d9 4c 5d 5d 5d 3b }
+      $s3 = { 9f 59 14 52 d8 a9 a2 a2 a2 00 9f 51 5d d6 d1 79 }
+   condition:
+      ( uint16(0) == 0x5a4d and filesize < 2000KB and all of them )
+}
+
+rule SUSP_autocad_lsp_malware {
+    meta:
+        description = "Recognizes malicious autocad files written in LISP"
+        author = "John Lambert @JohnLaTwC"
+        date = "2019-02-04"
+        reference1 = "http://cadablog.blogspot.com/2012/06/acadmedrea-malware-autocad-based-virus.html"
+        hash1= "1313398e2f39fcf17225c7e915b92bd74292d427163112d70b82f271359b84d5"
+        hash2= "2382e6908e6b44c0676c537cb8caa239c8938cb01e62a45c7247d40ab7dbf0ad"
+        hash3= "23cf3e7f41a755a45e396e5caa3e753e64655b91fe665808f71aa68718670dc8"
+        hash4= "23f018135afc4890e1e09bef9386e45e2236fc43550383b7888cddbdefbcd950"
+        hash5= "4a8da078a02fc49b7f13cd19d10519b1bf31ed0ab04268f018ad4733918e28ff"
+        hash6= "4cca7b530213ef71b2e69a5b11178b61044f93dc60f4e8e568ddb3bb06749ba2"
+        hash7= "5390271899e1ebf884380f5da7d26dff527d13922d3b3f8a3b5ec9152b9dfa40"
+        hash8= "53ef3029f36a3a2b912a722d64eef04f599f6f683c6dcb31a122ab1c98f38700"
+        hash9= "7f7d78931370fa693cbfa50aadecc09b4ab93917dcde3a653bd67fa6dc274cdc"
+        hash10= "8147cc97b6203c7eccfbd10457eb52527f74180ebae79bf3cb9c9edb582e708c"
+        hash11= "8a3113ceb45725539e4ccef5ea1482c29b2bbe0ce7ede72f59f9949a0e04c5cd"
+        hash12= "a0c77993f84ca8fb3096579088326bc907b003327f5885660ea5ba47e2cbc6de"
+        hash13= "a20ac5e0bfa2ee3cb4092907420c23d1f94a1ed1b59cc3d351e5602d7206178c"
+        hash14= "b201969ed7bf782d01011211b48bfccb9dd41a3a5a7456cdff2167f1e4d1b954"
+        hash15= "b2bac49288329a777e7aa7001e9383eec75719c08f2aa8c278b44fabeb74844f"
+        hash16= "b772dce92319bb48df39db6ab701761bd7645a771fd7f394510d5951695e7e96"
+        hash17= "c116cc4db6f77c580c1c4f8acda537ed04e597739bc83011773dbeb77adf93e3"
+        hash18= "ca1b9026b5d69c0981ca088330180d4865602fc2b514fd838664d3e11eab4468"
+        hash19= "d7a814d677f9f9dd9666dc4f4bb9cca88fa90bdb074e87006e8810eef9a0fb32"
+        hash20= "e4acfb69006b8aecf5801e36e2c69ccfeea2e8cbad4ceda9228d2dae2c8fd023"
+        hash21= "f9d6b894ca907145464058a4e2c78de84bf592609b46f3573bfd9e0029e1c778"
+        threat = "Trojan:ALS.Gen"
+    strings:
+        $s1 = /\(chr\s+\d+\)\s*\(chr\s+\d+\)\s*\(chr\s+\d+\)\s*\(chr\s+\d+\)/    //obfuscation
+        $s2 = /vl\-list\-\>string\s+\'\(\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+/ //obfucation c116cc4db6f77c580c1c4f8acda537ed04e597739bc83011773dbeb77adf93e3
+
+        $m1 = "strcat" nocase fullword
+        $m2 = "write-line" nocase fullword
+        $m3 = "open" nocase fullword
+        $m4 = /acad\w*\.lsp\"/ nocase fullword
+
+
+        $n1 = "vl-registry-write" nocase fullword
+        $n2 = "NOHIDDEN" nocase fullword
+        $n3 = "vlax-create-object " nocase fullword
+
+    condition:
+        filesize < 1MB
+        and uint8(0) == 0x28 
+        and (   
+            1 of ($s*)
+            or all of ($m*)
+            or all of ($n*)
+        )
+} 
+
+rule SUSP_Bad_PDF {
+   meta:
+      description = "Detects PDF that embeds code to steal NTLM hashes"
+      author = "Florian Roth (Nextron Systems), Markus Neis"
+      reference = "Internal Research"
+      date = "2018-05-03"
+      hash1 = "d8c502da8a2b8d1c67cb5d61428f273e989424f319cfe805541304bdb7b921a8"
+      threat = "Exploit-CVE2018-4993.a"
+   strings:
+      $s1 = "         /F (http//" ascii
+      $s2 = "        /F (\\\\\\\\" ascii
+      $s3 = "<</F (\\\\" ascii
+   condition:
+      ( uint32(0) == 0x46445025 or uint32(0) == 0x4450250a ) and 1 of them
+}
+
+rule MAL_CMD_Script_Obfuscated_Feb19_1 {
+   meta:
+      description = "Detects obfuscated batch script using env variable sub-strings"
+      author = "Florian Roth (Nextron Systems)"
+      reference = "https://twitter.com/DbgShell/status/1101076457189793793"
+      date = "2019-03-01"
+      hash1 = "deed88c554c8f9bef4078e9f0c85323c645a52052671b94de039b438a8cff382"
+      threat = "Trojan:Bat/Downloader.gen"
+   strings:
+      $h1 = { 40 65 63 68 6F 20 6F 66 66 0D 0A 73 65 74 20 }
+      $s1 = { 2C 31 25 0D 0A 65 63 68 6F 20 25 25 }
+   condition:
+      uint16(0) == 0x6540 and filesize < 200KB and
+      $h1 at 0 and
+      uint16(filesize-3) == 0x0d25 and uint8(filesize-1) == 0x0a and
+      $s1 in (filesize-200..filesize)
+}
+
+rule SUSP_obfuscated_JS_obfuscatorio : HIGHVOL 
+{
+	meta:
+	
+		author      = "@imp0rtp3"
+		description = "Detects JS obfuscation done by the js obfuscator (often malicious)"
+		reference   = "https://obfuscator.io"
+		date = "2021-08-25"
+      	score = 50
+        threat = "SUSP:JsObfuscator.Gen"
+        
+	strings:
+
+		// Beggining of the script
+		$a1 = "var a0_0x"
+		
+		// generic strings often used by the obfuscator
+		$c1 = "))),function(){try{var _0x"
+		$c2 = "=Function('return\\x20(function()\\x20'+'{}.constructor(\\x22return\\x20this\\x22)(\\x20)'+');');"
+		$c3 = "['atob']=function("
+		$c4 = ")['replace'](/=+$/,'');var"
+		$c5 = "return!![]"
+		$c6 = "'{}.constructor(\\x22return\\\x20this\\x22)(\\x20)'"
+		$c7 = "{}.constructor(\x22return\x20this\x22)(\x20)" base64
+		$c8 = "while(!![])"
+		$c9 = "while (!![])"
+
+		// Strong strings
+		$d1 = /(parseInt\(_0x([a-f0-9]{2}){2,4}\(0x[a-f0-9]{1,5}\)\)\/0x[a-f0-9]{1,2}\)?(\+|\*\()\-?){6}/
+				
+	condition:
+		$a1 at 0 or
+		(
+			filesize<1000000 and
+			(
+				3 of ($c*) or
+				$d1
+			)
+		)
+}
+
 rule INDICATOR_SUSPICIOUS_EXE_ASEP_REG_Reverse {
     meta:
         author = "ditekSHen"
