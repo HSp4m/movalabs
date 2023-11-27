@@ -9,13 +9,12 @@ from virustotal_python import Virustotal
 import hashlib
 from datetime import datetime
 import urllib.request
-from time import sleep
+from time import sleep, time
 from rich.console import Console
 import sqlite3
 import getpass
 
 console = Console()
-tasks = [f"Module {n}" for n in ["App"]]
 hash = "";
 historyPaths = []
 historyDetections = []
@@ -30,10 +29,155 @@ meta_defender_api = "https://api.metadefender.com/v4/hash/"
 QuickscanFolders = ["C:\\Windows\\Temp", f"C:\\Users\\{getpass.getuser()}\\AppData\\Local\\Temp", f"C:\\Users\\{getpass.getuser()}\\Downloads", f"C:\\Users\\{getpass.getuser()}\\Documents", "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Startup", "C:\\Windows\\System32", "C:\\Program Files", "C:\Program Files (x86)"]
 
 
+def updater(module="dataset"):
+    
+    if module == "dataset":
+        
+        try:
+            requestMd5 = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/hash/md5.txt");
+            requestSha256 = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/hash/256.txt");
+            requestSql = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/hash/HashDB");
+            requestYara = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/new.yara");
+            requestDataset = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/dataset.ini");
+            
+        except:
+            console.log(f"[red]Cannot make connection into github. Verify your internet connection and try again.")
+            return False;
 
+        if requestMd5.status_code == 200 and requestSha256.status_code == 200 and requestSql.status_code == 200 and requestYara.status_code == 200 and requestDataset.status_code == 200:
+            
+            if os.path.isfile(current_dir + "/hash/md5.txt") and os.path.isfile(current_dir + "/hash/256.txt") and os.path.isfile(current_dir + "/hash/HashDB") and os.path.isfile(current_dir + "/settings/dataset.ini"):
+                contentMd5 = requestMd5.content;
+                contentSha256 = requestSha256.content;
+                contentSql = requestSql.content;
+                contentYara = requestYara.content;
+                contentDataset = requestDataset.content;
+                
+                fileMD5 = open(current_dir + "/hash/md5.txt", "wb");
+                fileSha256 = open(current_dir + "/hash/256.txt", "wb");
+                fileSql = open(current_dir + "/hash/HashDB", "wb");
+                fileYara = open(current_dir + "/new.yara", "wb");
+                fileDataset = open(current_dir + "/settings/dataset.ini", "wb");
+                
+                fileMD5.write(contentMd5)
+                fileSha256.write(contentSha256)
+                fileSql.write(contentSql)
+                fileYara.write(contentYara)
+                fileDataset.write(contentDataset)
+                
+                
+                fileMD5.close();
+                fileSha256.close();
+                fileSql.close();
+                fileYara.close();
+                fileDataset.close();
+                
+                return True;
+                
+        else:
+            console.log(f"[red]Cannot make connection into github. (404)")
+            return False;
+        
+    elif module == "App":
+        msg = QtWidgets.QMessageBox() 
+        msg.setIcon(QtWidgets.QMessageBox.Warning) 
+        msg.setWindowIcon(QtGui.QIcon(current_dir + "\\res\\ico\\AntiVirus_ico.svg"))
 
-def mode():
+        msg.setInformativeText(f"A app update is avaliable. Update Now?")
+        msg.setText("Updater") 
+                                        
+                                        # setting Message box window title 
+        msg.setWindowTitle("Movalabs") 
+                                        
+                                        # declaring buttons on Message Box 
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel) 
+                                        
+                                        # start the app 
+                                    
+        retval = msg.exec_()
+        
+        if retval == 1024:
+            try:
+                requestApp = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/movalab.py");
+                
+            except:
+                console.log(f"[red]Cannot make connection into github. Verify your internet connection and try again.")
+                return False;
+
+            if requestApp.status_code:
+                
+                if os.path.isfile(__file__):
+                    
+                    contentApp = requestApp.content;
+                    fileApp = open(__file__, "wb");
+                    fileApp.write(contentApp)
+                    fileApp.close();
+
+                    
+                    return True;
+                    
+            else:
+                console.log(f"[red]Cannot make connection into github. (404)")
+                return False;
+        
+        else:
+            return False;    
+    
+def compileHashes():
+    global md5List;
+    global sha256List;
     global rules;
+    global db_cursor;
+    
+    try:
+        
+        with open(current_dir + "\\hash\\md5.txt", "r") as hashFile:
+            md5List = hashFile.read()
+                
+    except:
+                
+        console.log(f"[red]hash compile[white] Returned a unexpected error. Verify if the 'hash/md5.txt' file exist or open this app on powershell")
+        sleep(1)
+                
+        exit();      
+                                    
+    try:
+                
+        with open(current_dir + "\\hash\\256.txt", "r") as hashF:
+            sha256List = hashF.read()
+                    
+    except:
+                
+        console.log(f"[red]hash compile[white] Returned a unexpected error. Verify if the 'hash/256.txt' file exist or open this app on powershell")
+        sleep(1)
+                
+        exit();      
+        
+    try:
+        
+        fh = open(current_dir + '\\new.yara')
+        rules = yara.compile(file=fh)
+
+        fh.close()
+        
+    except:
+        
+        console.log(f"[red]Yara compile[white] Returned a unexpected error. Verify if the 'new.yara' file exist or open this app on powershell")
+        sleep(1)
+        
+        exit();
+        
+    try:
+        db_file = "./hash/HashDB"
+        
+        hashes = sqlite3.connect(db_file)
+        db_cursor = hashes.cursor()
+        
+    except:
+        console.log(f"[red]Database connection[white] Returned a unexpected error. Verify if the 'hash' folder exist or open this app on powershell")
+        exit();
+
+def mode(status=None):
     global automaticUpdates;
     global scanHistory;
     global style;
@@ -41,45 +185,20 @@ def mode():
     global vrapikey;
     global metadefenderkey;
     global metadefender;
-    global db_cursor;
     global LatestVersion__;
     global AppVersion__;
-    global md5List;
-    global sha256List;
 
+    timeInitial__ = time();
     __NaN = 0
     __missing = 0
     
-    try:
-        
-        with open(current_dir + "\\hash\\md5.txt", "r") as hashFile:
-            md5List = hashFile.read()
-        
-    except:
-        
-        console.log(f"[red]hash compile[white] Returned a unexpected error. Verify if the 'hash/md5.txt' file exist or open this app on powershell")
-        sleep(1)
-        
-        exit();      
-                              
-    try:
-        
-        with open(current_dir + "\\hash\\256.txt", "r") as hashF:
-            sha256List = hashF.read()
-            
-    except:
-        
-        console.log(f"[red]hash compile[white] Returned a unexpected error. Verify if the 'hash/256.txt' file exist or open this app on powershell")
-        sleep(1)
-        
-        exit();   
+    compileHashes();
         
     try:
 
-        __VersionGIT = "https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini"
-        __Page = urllib.request.urlopen(__VersionGIT)
-        LatestVersion__ = f"{__Page.read()}".replace("b","").replace("'","").replace("n","").replace("\\","")
-        AppVersion__ = "1.2.1"
+        __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini")
+        LatestVersion__ = __Page.content.decode('utf-8')
+        AppVersion__ = "1.2.5"
     
     except:
         
@@ -107,32 +226,6 @@ def mode():
         
         exit();
        
-    try:
-        
-        fh = open(current_dir + '\\new.yara')
-        rules = yara.compile(file=fh)
-
-        fh.close()
-        
-    except:
-        
-        console.log(f"[red]Yara compile[white] Returned a unexpected error. Verify if the 'new.yara' file exist or open this app on powershell")
-        sleep(1)
-        
-        exit();
-    
-
-    
-    try:
-        db_file = "./hash/HashDB"
-        
-        hashes = sqlite3.connect(db_file)
-        db_cursor = hashes.cursor()
-    except:
-        console.log(f"[red]Database connection[white] Returned a unexpected error. Verify if the 'hash' folder exist or open this app on powershell")
-        sleep(1)
-        
-        __missing += 1
     
     __updaterResult = update()
     __updaterDataResult = update("data")
@@ -142,19 +235,40 @@ def mode():
     
     if __updaterDataResult == True:
         console.log(f"[red]Module Dataset[white] Missing update")
+        console.log(f"[yellow]Starting update...")
+        status.stop()
+        __updaterResult__ = updater()
         
-        __missing += 1
+        if __updaterResult__ == True:
+             
+            
+            console.log(f"[green]Dataset Update completed sucefully!") 
+            compileHashes();
+        
+        else:
+            console.log(f"[red]Dataset Update cannot be completed.")
             
             
-            
+        
     else:
         console.log(f"[green]Module Dataset[white] ok")
         
         
     if __updaterResult == True:
         console.log(f"[red]Module App[white] Missing update")
+        console.log(f"[yellow]Starting update...")
+        status.stop()
+        __updaterResult__ = updater("App")
         
-        __missing += 1
+        if __updaterResult__ == True:
+            
+            console.log(f"[bold green]Update completed sucefully! [A restart is needed.]") 
+        
+        else:
+            console.log(f"[red]Update cannot be completed.")
+            
+            
+        
             
     
     else:
@@ -204,10 +318,12 @@ def mode():
         
     
     if __missing == 0:
+            timeFineshed__ = time();
             sleep(1)
-            console.log(f"[green]App Loaded ({DatasetVersion__}) ({AppVersion__})")
+            console.log(f"[green]App Loaded ({DatasetVersion__}) ({AppVersion__})! [Done in {round(timeFineshed__ - timeInitial__, 2)}s]")
         
     else:
+    
         sleep(1)
         console.log(f"[red]App cannot load. {__missing} errors ocurred")
         exit()
@@ -216,7 +332,7 @@ def mode():
 
 def verifyModules():
     with console.status("[bold green]Working on app load...") as status:
-       mode() 
+       mode(status)
 
 
 def getMalwareType256(hash):
@@ -236,6 +352,9 @@ def getMalwareType256(hash):
                 else:
                     continue 
 
+
+    
+
 def quickScan(folders, self):
     __missing = 0;
     __founded = 0;
@@ -251,30 +370,38 @@ def quickScan(folders, self):
     self.resultWidget.clear()
     
     if self.AutomaticUpdates.isChecked() == True:
-        with console.status(f"[bold green]Verifying for updates..."):
+        with console.status(f"[bold green]Verifying for updates...") as __None__:
             __updaterResult = update()
             __updaterDataResult = update("data")
             
             if __updaterResult == True:
-                console.log(f"[red]Module App[white] Missing update")
-                __missing += 1
+                console.log(f"[yellow]Starting a App update!") 
+                __None__.stop();
+                __updaterResult__ = updater("App")
+                if __updaterResult__ == True:
+                    console.log(f"[green]Update completed sucefully! [A restart is needed.]") 
+                    
+                    
+                else:
+                    console.log(f"[red]Update cannot be completed.")
+                    
             
             if __updaterDataResult == True:
-                console.log(f"[red]Module Dataset[white] Missing update")
-                __missing += 1
+                console.log(f"[yellow]Starting a Dataset update!") 
+                __updaterResult__ = updater();
                 
-            if __missing == 0:
+                if __updaterResult__ == True:
+                    console.log(f"[green]Update completed sucefully!") 
+                    compileHashes();
                     
-                console.log(f"[green]Scan will be started soon...")
-                
-            else:
-                sleep(1)
-                console.log(f"[red]Scan cannot be started. {__missing} updates missing!")
-                sleep(1)
-                console.log(f"[yellow]A module scan will be started soon.")
+                else:
+                    console.log(f"[red]Update cannot be completed.")
                     
-                mode()    
                 
+            console.log(f"[green]Scan will be started soon...")
+            
+        
+    timeInitial__ = time();
     with console.status("[bold green] Quick scan in progress..."):
         notify(tray,"Starting a quick scan", "A quick scan has been started.", "none")
         
@@ -354,10 +481,12 @@ def quickScan(folders, self):
             console.log(f"'{folder}' Has been processed. '{__foundInFolder}' malwares found")
                          
         if __founded == 0:
-            console.log(f"[bold green] No malwares found.")
+            timeFineshed__ = time();
+            console.log(f"[bold green] No malwares found. [Done in {round(timeFineshed__ - timeInitial__, 2)}s]")
         
         else:
-            console.log(f"[red]'{__founded}' malwares found.")    
+            timeFineshed__ = time();
+            console.log(f"[red]'{__founded}' malwares found. [Done in {round(timeFineshed__ - timeInitial__, 2)}s]")    
     
 def scaninfo(self):
     historyResult = []
@@ -460,29 +589,38 @@ def list_files(dir, self, tray):
     __filesVerificated = 0;
     
     if self.AutomaticUpdates.isChecked() == True:
-        with console.status(f"[bold green]Verifying for updates..."):
+        
+        with console.status(f"[bold green]Verifying for updates...") as __None__:
             __updaterResult = update()
             __updaterDataResult = update("data")
             
             if __updaterResult == True:
-                console.log(f"[red]Module App[white] Missing update")
-                __missing += 1
+                console.log(f"[yellow]Starting a App update!") 
+                
+                __None__.stop();
+                __updaterResult__ = updater("App")
+                if __updaterResult__ == True:
+                    console.log(f"[green]Update completed sucefully! [A restart is needed.]") 
+                    
+                    
+                else:
+                    console.log(f"[red]Update cannot be completed.")
+                    
             
             if __updaterDataResult == True:
-                console.log(f"[red]Module Dataset[white] Missing update")
-                __missing += 1
+                console.log(f"[yellow]Starting a Dataset update!") 
+                __updaterResult__ = updater();
                 
-            if __missing == 0:
+                if __updaterResult__ == True:
+                    console.log(f"[green]Update completed sucefully!") 
+                    compileHashes();
                     
-                console.log(f"[green]Scan will be started soon...")
+                else:
+                    console.log(f"[red]Update cannot be completed.")
+                    
                 
-            else:
-                sleep(1)
-                console.log(f"[red]Scan cannot be started. {__missing} updates missing!")
-                sleep(1)
-                console.log(f"[yellow]A module scan will be started soon.")
-                    
-                mode()    
+            console.log(f"[green]Scan will be started soon...")
+                
                 
             
     
@@ -493,11 +631,10 @@ def list_files(dir, self, tray):
     
     
     console.log(f"[green][[white]+[green]][white] Starting Folder scan! [yellow]{__totalFiles}[white] files")
-     
+
     with console.status(f"[bold green]Running a scan in '{dir}'...") as status:
-            
+        timeInitial__ = time();    
         for root, dirs, files in os.walk(dir):
-            
     
             try:
                 total += 1
@@ -590,7 +727,7 @@ def list_files(dir, self, tray):
     
     
     if len(historyFilesDetected) == 0:
-        
+        timeFineshed__ = time();
         self.progress.setVisible(False)
         historyDetectionsPF.append(f"{fileR}: {len(historyFilesDetected)}")
         scan_end(self, len(historyFilesDetected), f"Folder scan: {dir}")
@@ -598,10 +735,10 @@ def list_files(dir, self, tray):
         
         notify(tray,"No malware found", f"No malware found in [{dir}].", "AntiVirus_icoGreen.svg")
         sleep(1)
-        console.log(f"No malware found in '{dir}'")
+        console.log(f"No malware found in '{dir}' [Done in {round(timeFineshed__ - timeInitial__, 2)}s]")
                        
     else:
-        
+        timeFineshed__ = time();
         self.progress.setVisible(False)
         historyDetectionsPF.append(f"{fileR}: {len(historyFilesDetected)}")
         scan_end(self, len(historyFilesDetected), f"Folder scan: {dir}") 
@@ -609,7 +746,7 @@ def list_files(dir, self, tray):
         
         notify(tray,"Malware found", f"Open the app to see the results.", "AntiVirus_icoRed.svg")
         sleep(1)
-        console.log(f"[red]{len(historyFilesDetected)}[white] malwares found in [red]'{dir}'")
+        console.log(f"[red]{len(historyFilesDetected)}[white] malwares found in [red]'{dir}' [Done in {round(timeFineshed__ - timeInitial__, 2)}s]")
             
         
         
@@ -633,7 +770,7 @@ class Ui_Dialog(object):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(590, 300)
         MainWindow.setMinimumSize(QtCore.QSize(590, 300))
-        MainWindow.setMaximumSize(QtCore.QSize(600, 300))
+        MainWindow.setMaximumSize(QtCore.QSize(590, 300))
         MainWindow.setStyleSheet("")
       
         
@@ -867,13 +1004,14 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
         self.FileHash.setFont(font)
         self.FileHash.setObjectName("FileHash")
         self.label = QtWidgets.QLabel(self.VirusScanResults_hidden)
-        self.label.setGeometry(QtCore.QRect(5, 160, 111, 31))
+        self.label.setGeometry(QtCore.QRect(193, 155, 111, 31))
         font = QtGui.QFont()
         font.setPointSize(9)
         self.label.setFont(font)
         self.label.setObjectName("label")
         self.IsFileVirusY_N = QtWidgets.QLabel(self.VirusScanResults_hidden)
-        self.IsFileVirusY_N.setGeometry(QtCore.QRect(5, 190, 101, 31))
+        self.IsFileVirusY_N.setGeometry(QtCore.QRect(140, 160, 181, 71))
+        #5, 190, 101, 31
         font = QtGui.QFont()
         font.setPointSize(18)
         font.setBold(True)
@@ -905,7 +1043,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
         self.line.setIndent(-1)
         self.line.setObjectName("line")
         self.VirusTotalWidget = QtWidgets.QWidget(self.VirusScanResults_hidden)
-        self.VirusTotalWidget.setGeometry(QtCore.QRect(120, 160, 181, 71))
+        self.VirusTotalWidget.setGeometry(QtCore.QRect(5, 190, 101, 31))
         self.VirusTotalWidget.setObjectName("VirusTotalWidget")
         self.label_3 = QtWidgets.QLabel(self.VirusTotalWidget)
         self.label_3.setGeometry(QtCore.QRect(10, 9, 161, 21))
@@ -1094,22 +1232,6 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
             tray.setIcon(icon) 
             tray.setVisible(True) 
             
-                    # Creating the options 
-            menu = QtWidgets.QMenu() 
-            update = QtWidgets.QAction("Update") 
-
-            menu.addAction(update) 
-                    
-                    
-                    # To quit the app 
-            quit = QtWidgets.QAction("Quit") 
-                    
-            quit.triggered.connect(lambda: exitM()) 
-            menu.addAction(quit) 
-            yaraF = False;
-            hashF = False;        
-                    # Adding options to the System Tray 
-            tray.setContextMenu(menu)
             
             tray.show()
             
@@ -1128,7 +1250,41 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
 
             filepath = (filepath_raw + "/" + filename)
             
+            if self.AutomaticUpdates.isChecked() == True:
+        
+                with console.status(f"[bold green]Verifying for updates...") as __None__:
+                    __updaterResult = update()
+                    __updaterDataResult = update("data")
+                    
+                    if __updaterResult == True:
+                        console.log(f"[yellow]Starting a App update!") 
+                        
+                        __None__.stop();
+                        __updaterResult__ = updater("App")
+                        if __updaterResult__ == True:
+                            console.log(f"[green]Update completed sucefully! [A restart is needed.]") 
+                            
+                            
+                        else:
+                            console.log(f"[red]Update cannot be completed.")
+                            
+                    
+                    if __updaterDataResult == True:
+                        console.log(f"[yellow]Starting a Dataset update!") 
+                        __updaterResult__ = updater();
+                        
+                        if __updaterResult__ == True:
+                            console.log(f"[green]Update completed sucefully!") 
+                            compileHashes();
+                            
+                        else:
+                            console.log(f"[red]Update cannot be completed.")
+                            
+                        
+                    console.log(f"[green]Scan will be started soon...")
+            
             if os.path.isfile(filepath) and filename not in ["movalab.py", "new.yara"]:
+                timeInitial__ = time();
                 console.log(f"[green][[white]+[green]][white] Starting file scan!")
                 with console.status(f"[bold green]Running a scan for the file '{filename}' ...") as status:
                     vrapikey = config['-settings-']['vrapikey']
@@ -1429,9 +1585,9 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                         
                     self.FileHash.setText(f"File Hash: {hash}")
                     if found == True:
-                        #print("why?")
+                        timeFineshed__ = time();
+                        console.log(F"'{filename}' is infected. [Done in {round(timeFineshed__ - timeInitial__, 2)}s]")
                         self.Tabs.setCurrentIndex(2)
-            # check if virus total check if on and file is under 32mb
                         if self.UseVirusTotalApiCheckBox.isChecked() and os.path.getsize(filepath) < 32000000:
                             self.VirusTotalWidget.show()
                             
@@ -1469,7 +1625,8 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                             self.MetaDefenderWidget.hide()
                             # set text to clean
                         if suspecious == False:
-                            console.log(F"'{filename}' is safe.")
+                            timeFineshed__ = time();
+                            console.log(F"'{filename}' is safe. [Done in {round(timeFineshed__ - timeInitial__, 2)}s]")
                             notify(tray,"No malware found", f"No malware found in {filename}.", "AntiVirus_icoGreen.svg")
                             self.IsFileVirusY_N.setStyleSheet("color: green")
                             self.IsFileVirusY_N.setText("NO!")
@@ -1627,17 +1784,93 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                     config.write(configf)
         
         def verifyupdates(self):
-            
+            DatasetVersion__ = getDatasetVersion();
+            noupdate__ = 0;
+            update__ = 0;
             __UpdaterResult = update();
+            __UpdaterDataResult = update("data")
+            msg = QtWidgets.QMessageBox() 
+            msg.setIcon(QtWidgets.QMessageBox.Information) 
+            msg.setWindowIcon(QtGui.QIcon(current_dir + "\\res\\ico\\AntiVirus_ico.svg"))
             
+            
+            if __UpdaterDataResult == False:
+                noupdate__ += 1;
+                
+            else:
+                console.log("[green]Running a dataset update..")
+                __UpdaterDataResult__ = updater()
+                update__ += 1;
+                    
+                if __UpdaterDataResult__ == True:
+                    msg.setIcon(QtWidgets.QMessageBox.Information) 
+                    msg.setInformativeText(f"A dataset update has been completed.")
+                    msg.setText("Updater") 
+                                        
+                                        # setting Message box window title 
+                    msg.setWindowTitle("Movalabs") 
+                                        
+                                        # declaring buttons on Message Box 
+                    msg.setStandardButtons(QtWidgets.QMessageBox.Ok) 
+                                        
+                                        # start the app 
+                                    
+                    retval = msg.exec_()
+                    compileHashes();
+                        
+                else:
+                    msg.setIcon(QtWidgets.QMessageBox.Critical) 
+                    msg.setInformativeText(f"A dataset update cannot be completed. Verify the terminal for logs.")
+                    msg.setText("Updater") 
+                                        
+                                        # setting Message box window title 
+                    msg.setWindowTitle("Movalabs") 
+                                        
+                                        # declaring buttons on Message Box 
+                    msg.setStandardButtons(QtWidgets.QMessageBox.Ok) 
+                                        
+                                        # start the app 
+                                    
+                    retval = msg.exec_()  
+                
             if __UpdaterResult == False:
+                noupdate__ += 1;
             
-                msg = QtWidgets.QMessageBox() 
+            else:
+                __UpdaterResult__ = updater("App")
+                
+                if __UpdaterResult__ == True:
+                    msg.setIcon(QtWidgets.QMessageBox.Information) 
+                    msg.setInformativeText(f"Update completed. [A app restart is need.]")
+                    msg.setText("Updater") 
+                                            
+                                            # setting Message box window title 
+                    msg.setWindowTitle("Movalabs") 
+                                            
+                                            # declaring buttons on Message Box 
+                    msg.setStandardButtons(QtWidgets.QMessageBox.Ok) 
+                                            
+                                            # start the app 
+                                        
+                    retval = msg.exec_()         
+                else:
+                    msg.setIcon(QtWidgets.QMessageBox.Critical) 
+                    msg.setInformativeText(f"A app update cannot be completed. Verify the terminal for logs.")
+                    msg.setText("Updater") 
+                                        
+                                        # setting Message box window title 
+                    msg.setWindowTitle("Movalabs") 
+                                        
+                                        # declaring buttons on Message Box 
+                    msg.setStandardButtons(QtWidgets.QMessageBox.Ok) 
+                                        
+                                        # start the app 
+                                    
+                    retval = msg.exec_()   
+           
+            if noupdate__ == 2:
                 msg.setIcon(QtWidgets.QMessageBox.Information) 
-                msg.setWindowIcon(QtGui.QIcon(current_dir + "\\res\\ico\\AntiVirus_ico.svg"))
-                            
-                                # setting message for Message Box 
-                msg.setInformativeText(f"No update avaliable. \nCurrent Version: {AppVersion__}")
+                msg.setInformativeText(f"No update avaliable. \nApp Version: {AppVersion__}\nDataset Version: {DatasetVersion__}")
                 msg.setText("Updater") 
                                 
                                 # setting Message box window title 
@@ -1645,26 +1878,6 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                 
                                 # declaring buttons on Message Box 
                 msg.setStandardButtons(QtWidgets.QMessageBox.Ok) 
-                                
-                                # start the app 
-                            
-                retval = msg.exec_()
-            
-            else:
-                
-                msg = QtWidgets.QMessageBox() 
-                msg.setIcon(QtWidgets.QMessageBox.Warning) 
-                msg.setWindowIcon(QtGui.QIcon(current_dir + "\\res\\ico\\AntiVirus_ico.svg"))
-                            
-                                # setting message for Message Box 
-                msg.setInformativeText(f"Update avaliable. \nLatest Version: {LatestVersion__}")
-                msg.setText("Updater") 
-                                
-                                # setting Message box window title 
-                msg.setWindowTitle("Movalabs") 
-                                
-                                # declaring buttons on Message Box 
-                msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No) 
                                 
                                 # start the app 
                             
@@ -1688,22 +1901,6 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
             tray = QtWidgets.QSystemTrayIcon() 
             tray.setIcon(icon) 
             tray.setVisible(True) 
-            
-                    # Creating the options 
-            menu = QtWidgets.QMenu() 
-            update = QtWidgets.QAction("Update") 
-
-            menu.addAction(update) 
-                    
-                    
-                    # To quit the app 
-            quit = QtWidgets.QAction("Quit") 
-                    
-            quit.triggered.connect(lambda: exitM()) 
-            menu.addAction(quit) 
-                    
-                    # Adding options to the System Tray 
-            tray.setContextMenu(menu)
             
             tray.show()
             folderpath = str(QtWidgets.QFileDialog.getExistingDirectory(MainWindow,
@@ -1801,7 +1998,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
         self.FileName.setText(_translate("MainWindow", "File Name: "))
         self.FilePath.setText(_translate("MainWindow", "File Path: "))
         self.FileHash.setText(_translate("MainWindow", "File Hash: "))
-        self.label.setText(_translate("MainWindow", "Virus?"))
+        self.label.setText(_translate("MainWindow", "Detected?"))
         self.IsFileVirusY_N.setText(_translate("MainWindow", "YES"))
         self.ReturnToHomeTabButton.setText(_translate("MainWindow", "Return"))
         self.QuarentineFileButton.setText(_translate("MainWindow", "Remove File"))
@@ -1818,33 +2015,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
         
      
         
-def exitM():
-        msg = QtWidgets.QMessageBox()
-        msg.setWindowIcon(QtGui.QIcon(current_dir + '\\res\\ico\\AntiVirus_ico.svg'))
-        msg.setIcon(QtWidgets.QMessageBox.Warning) 
-                            
-                                # setting message for Message Box 
-        msg.setInformativeText("If you exit you now maybe unprotected. Are you sure you want to exit?")
-        msg.setText("Exit confirmation") 
-                                
-                                # setting Message box window title 
-        msg.setWindowTitle("Movalabs") 
-                                
-                                # declaring buttons on Message Box 
-        msg.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel) 
-                                
-                                # start the app 
-                            
-        retval = msg.exec_()
-            
-        if retval == 1024:
-                
-            app.exit()
-                
-        elif retval == 4194304:
-                
-            print("Canceled.")
-            pass
+
 def getDatasetVersion():
     _dataFile = open(current_dir + '\\settings\\dataset.ini')
     DatasetVersion__ = _dataFile.read()
@@ -1890,26 +2061,23 @@ if __name__ == "__main__":
     
     
 
-    verifyModules()
+    
     
     app = QtWidgets.QApplication(sys.argv)
     
     QtWidgets.QWidget().setWindowTitle("Movalabs BETA")
     
-    if style == "dark":
-        darkmode = True
-        qdarktheme.setup_theme("dark", custom_colors={"background": "#000000"})
-        #121214
-        #0d0d15
-        #111827
-    else:
-        darkmode = False
-        qdarktheme.setup_theme("light")
+    darkmode = True
+    qdarktheme.setup_theme("dark", custom_colors={"background": "#000000"})
+
     
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_Dialog()
     MainWindow.setWindowIcon(QtGui.QIcon(current_dir + "\\res\\ico\\AntiVirus_ico.svg"))
+    verifyModules()
     ui.setupUi(MainWindow)
+    
     MainWindow.show()
+    
     sys.exit(app.exec_())
 
