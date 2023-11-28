@@ -12,6 +12,7 @@ from time import sleep, time
 from rich.console import Console
 import sqlite3
 import getpass
+from winotify import Notification, audio
 
 console = Console()
 hash = "";
@@ -178,7 +179,7 @@ def compileHashes():
         exit();
 
     DatasetVersion__ = getDatasetVersion()
-    
+  
 def mode(status=None):
     global automaticUpdates;
     global scanHistory;
@@ -200,7 +201,7 @@ def mode(status=None):
 
         __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini")
         LatestVersion__ = __Page.content.decode('utf-8')
-        AppVersion__ = "1.2.8"
+        AppVersion__ = "1.2.9"
     
     except:
         
@@ -401,7 +402,7 @@ def quickScan(folders, self):
         
     timeInitial__ = time();
     with console.status("[bold green] Quick scan in progress..."):
-        notify(tray,"Starting a quick scan", "A quick scan has been started.", "none")
+        notify(None,"status-info-128.png", "A quick scan will verify important parts of your system. Be patient","A quick scan has been started.")
         
         __totalFolders = len(folders);
         
@@ -481,11 +482,11 @@ def quickScan(folders, self):
         if __founded == 0:
             timeFineshed__ = time();
             console.log(f"[bold green] No malwares found. [Done in {round(timeFineshed__ - timeInitial__, 2)}s]")
-        
+            notify(None,"status-ok-128.png", "No malware detected in quick scan.","No malware detected")
         else:
             timeFineshed__ = time();
             console.log(f"[red]'{__founded}' malwares found. [Done in {round(timeFineshed__ - timeInitial__, 2)}s]")    
-    
+            notify(None,"status-error-128.png", f"{__founded} Malwares detected in quick scan. Open the app for more information.","Malwares detected")
 def scaninfo(self):
     historyResult = []
     __get = 0
@@ -542,7 +543,7 @@ def scaninfo(self):
     if __get == 0:
         console.log(f"[yellow][?][white] Scan fetch ended.")
         pass
-                      
+           
     
 def scan_end(self,detections, scantype):
     data = datetime.now()
@@ -563,14 +564,17 @@ def scan_end(self,detections, scantype):
         #216, 56, 56
         #218,53,69
 
-def notify(tray, message, description, image):
+def notify(dir,image,description,title):
 
-    icon = QtGui.QIcon(current_dir + '\\res\\ico\\' + image)
-    tray.showMessage(message, description, icon,msecs=2000)
-            
-    timer = QtCore.QTimer()
-    timer.timeout.connect(lambda: tray.hide())
-    timer.start(4000)
+    
+    notify = Notification(app_id="Movalabs", 
+                     title=title,
+                     msg=description,
+                     duration="short",
+                     icon=current_dir + '\\res\\ico\\' + image)
+    notify.set_audio(audio.Default, loop=False)
+
+    notify.show()
 
 def list_files(dir, self, tray):
 
@@ -621,8 +625,8 @@ def list_files(dir, self, tray):
                 
                 
             
-    
-    notify(tray,"Starting scan", f"A scan for the folder [{dir}] has been started. The scan mabe take a lot of time", "none")
+
+    notify(dir, "status-info-128.png",f"A scan for the folder [{dir}] has been started. The scan mabe take a lot of time","A folder scan has been started.")
  
     __totalFiles =sum(len(files) for _, _, files in os.walk(dir))            
     self.progress.setMaximum(__totalFiles)
@@ -731,7 +735,7 @@ def list_files(dir, self, tray):
         scan_end(self, len(historyFilesDetected), f"Folder scan: {dir}")
         historyPaths.append(dir)
         
-        notify(tray,"No malware found", f"No malware found in [{dir}].", "AntiVirus_icoGreen.svg")
+        notify(dir, "status-ok-128.png", f"The folder [{dir}] is safe!", "No malware found.")
         sleep(1)
         console.log(f"No malware found in '{dir}' [Done in {round(timeFineshed__ - timeInitial__, 2)}s]")
                        
@@ -742,7 +746,7 @@ def list_files(dir, self, tray):
         scan_end(self, len(historyFilesDetected), f"Folder scan: {dir}") 
         historyPaths.append(dir)
         
-        notify(tray,"Malware found", f"Open the app to see the results.", "AntiVirus_icoRed.svg")
+        notify(dir, "status-error-128.png", f"{len(historyFilesDetected)} Malwares found in [{dir}]!", "Malware found.")
         sleep(1)
         console.log(f"[red]{len(historyFilesDetected)}[white] malwares found in [red]'{dir}' [Done in {round(timeFineshed__ - timeInitial__, 2)}s]")
             
@@ -752,12 +756,6 @@ def list_files(dir, self, tray):
         
 def itens(self):
     pass;
-        
-
-
-class Ui_2(object):
-    def setup(self,Dialog):
-        self.setWindowIcon(QtGui.QIcon(current_dir + "\\res\\ico\\AntiVirus_ico.svg"))
         
 
         
@@ -1315,7 +1313,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                             
                                     console.log(F"[red]'{filename}'[white] is infected with [red]'{threat}'")
                                     scan_end(self, 1, f"File scan: {filepath}")
-                                    notify(tray,"Malware Detected", f"Type: {threat} \nDetection: Yara rules", "AntiVirus_icoRed.svg")
+                                    notify(filepath,"status-error-128.png",f"Type: {threat} \nDetection: Yara rules","Malware Detected")
                                     self.FilePath.setText(f"Detection Type: Yara Rules ({threat})")
                                     
                                     
@@ -1330,7 +1328,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                             threat = getMalwareType256(hashSha256)
                             console.log(f"[red]'{filename}'[white] is infected with [red]'{threat}'")
                             scan_end(self, 1, f"File scan: {filepath}")
-                            notify(tray,"Malware Detected", f"Type: {threat} \nDetection: Hash list", "AntiVirus_icoRed.svg")
+                            notify(filepath,"status-error-128.png",f"Type: {threat} \nDetection: Hash list","Malware Detected")
                             self.FilePath.setText("Detection Type: Hash List")
                                         
 
@@ -1343,14 +1341,13 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                         self.FilePath.setText("Detection Type: Hash List")    
                         console.log(f"[red]'{filename}'[white] is infected with [red]'{__InDB[1]}'")
                         scan_end(self, 1, f"File scan: {filepath}")
-                        notify(tray,"Malware Detected", f"Type: {__InDB[1]} \nDetection: Hash list", "AntiVirus_icoRed.svg")
-                    
+                        notify(filepath,"status-error-128.png",f"Type: {__InDB[1]} \nDetection: Hash list","Malware Detected")
                     
                     
                     if hashMD5 in md5List and found != True:
                             found = True;
                             console.log(f"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
-                            notify(tray,"Malware Found", "Detection type: Hash List", "AntiVirus_icoRed.svg")
+                            notify(filepath,"status-error-128.png",f"Type: UDS:DangerousObject.multi.generic \nDetection: Hash list","Malware Detected")
                             self.FilePath.setText("Detection Type: Hash List")
                             scan_end(self, 1, f"File scan: {filepath}")
                     
@@ -1386,7 +1383,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                             console.log(F"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
                                             
                                             scan_end(self, 1, f"File scan: {filepath}")
-                                            notify(tray,"Malware Found", "Detection type: VirusTotal", "AntiVirus_icoRed.svg")
+                                            notify(filepath,"status-error-128.png",f"Detection type: VirusTotal","Malware Detected")
                                             self.FilePath.setText("Detection Type:  Virustotal")
                                             self.DetectionsText.setStyleSheet("color: red")
                                             self.DetectionsText.setText(f"{str(detections)} | {str(not_detections)}")
@@ -1396,7 +1393,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                             scan_end(self, 1, f"File scan: {filepath}")
                                             console.log(F"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
                                             
-                                            notify(tray,"Malware Found", "Detection type: VirusTotal", "AntiVirus_icoRed.svg")
+                                            notify(filepath,"status-error-128.png",f"Detection type: VirusTotal","Malware Detected")
                                             self.FilePath.setText("Detection Type:  Virustotal")
                                             self.DetectionsText.setStyleSheet("color: yellow")
                                             self.DetectionsText.setText(f"{str(detections)} | {str(not_detections)}")
@@ -1406,7 +1403,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                             scan_end(self, 1, f"File scan: {filepath}")
                                             console.log(F"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
                                             
-                                            notify(tray,"Malware Found", "Detection type: VirusTotal", "AntiVirus_icoRed.svg")
+                                            notify(filepath,"status-error-128.png",f"Detection type: VirusTotal","Malware Detected")
                                             self.FilePath.setText("Detection Type:  Virustotal")
                                             self.DetectionsText.setStyleSheet("color: red")
                                             self.DetectionsText.setText(f"{str(detections)} | {str(not_detections)}")
@@ -1417,7 +1414,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                             self.DetectionsText.setStyleSheet("color: white")
                                             
                                             self.DetectionsText.setText(f"{str(detections)} | {str(not_detections)}")
-                                        print(f"[?] Scan end")
+                                        console.log(f"[?] Scan end")
                                     else:
                                         msg = QtWidgets.QMessageBox() 
                                         msg.setIcon(QtWidgets.QMessageBox.Critical) 
@@ -1452,15 +1449,15 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                     retval = msg.exec_()
                                 
                             else:
-                                self.label.setText("")
                                 msg = QtWidgets.QMessageBox() 
                                 msg.setIcon(QtWidgets.QMessageBox.Critical) 
                                     
                                         # setting message for Message Box 
-                                msg.setText("Apikey not set.") 
+                                msg.setText("Virustotal Api.")
+                                msg.setInformativeText(f"Virustotal apikey not set.") 
                                         
                                         # setting Message box window title 
-                                msg.setWindowTitle("ERROR") 
+                                msg.setWindowTitle("Movalabs") 
                                         
                                         # declaring buttons on Message Box 
                                 msg.setStandardButtons(QtWidgets.QMessageBox.Ok) 
@@ -1502,24 +1499,27 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                             # get api key
                             MetaDefenderApiKey = self.MetaDefenderApiKey.text()
                             # check if api key is empty if yes then show error
-                            if MetaDefenderApiKey == "":
+                            if MetaDefenderApiKey in ["", None]:
                                 
-                                msgBox = QtWidgets.QMessageBox()
-                                msgBox.setIcon(QtWidgets.QMessageBox.Critical)
-                                msg.setWindowIcon(QtGui.QIcon(current_dir + '\\res\\ico\\AntiVirus_ico.svg'))
-
-                                msg.setWindowTitle("Movalabs")
-                                msgBox.setText("Error")
-                                msgBox.setInformativeText(f"""\
-            Please enter a valid Meta Defender API key.
-                                """)
-                                # remove window title bar
-                                msgBox.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-                                msgBox.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-                                msgBox.exec_()
+                                msg = QtWidgets.QMessageBox() 
+                                msg.setIcon(QtWidgets.QMessageBox.Critical) 
+                                    
+                                        # setting message for Message Box 
+                                msg.setText("Metadefender Api.")
+                                msg.setInformativeText(f"Metadefender apikey not set.")  
+                                        
+                                        # setting Message box window title 
+                                msg.setWindowTitle("Movalabs") 
+                                        
+                                        # declaring buttons on Message Box 
+                                msg.setStandardButtons(QtWidgets.QMessageBox.Ok) 
+                                        
+                                        # start the app 
+                                    
+                                retval = msg.exec_()
                             # if api key is not empty then scan the hash of the file
                             else:
-                                print(f"[+] Verifying (METADEFENDER): {direc}")
+                                console.log(f"[+] Verifying (METADEFENDER): {direc}")
                                 M_header=({"apikey": MetaDefenderApiKey})
                                 M_analysis = requests.get(meta_defender_api + hash, headers=M_header)
                                 M_analysis_json = M_analysis.json()
@@ -1528,7 +1528,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                 half_M_not_detections = M_not_detections / 2
                                 # show Meta Defender results
                                 self.MetaDefenderWidget.show()
-                                # if detections more than half of not detections print red
+ 
                                
                                 if M_detections > 3:
                                     scan_end(self, 1, f"File scan: {filepath}")
@@ -1550,7 +1550,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                     self.FilePath.setText("Detection Type:  MetaDefender")
                                     found = True
                                     self.MetaDefenderDetectionsText.setStyleSheet("color: red")
-                                    notify(tray,"Malware Found", "Detection type: MetaDefender", "AntiVirus_icoRed.svg")
+                                    notify(filepath,"status-error-128.png",f"Detection type: Metadefender","Malware Detected")
                                     self.MetaDefenderDetectionsText.setText(f"{str(M_detections)} | {str(M_not_detections)}")
                                     self.IsFileVirusY_N.setStyleSheet("color: red")
                                     if found == False:
@@ -1577,7 +1577,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                     except:
                         self.MetaDefenderDetectionsText.setStyleSheet("color: white")
                         self.MetaDefenderDetectionsText.setText(f"ERROR")
-                        notify(tray,"Metadefender API", "Cannot verify the file with metadefender.", "AntiVirus_ico.ico")
+                        
                         console.log(F"[yellow]'{filename}'[white] cannot be verified with [yellow]'Metadenfender API'")
                         
                         
@@ -1625,7 +1625,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                         if suspecious == False:
                             timeFineshed__ = time();
                             console.log(F"'{filename}' is safe. [Done in {round(timeFineshed__ - timeInitial__, 2)}s]")
-                            notify(tray,"No malware found", f"No malware found in {filename}.", "AntiVirus_icoGreen.svg")
+                            notify(filepath,"status-ok-128.png",f"The file {filename} is safe.","No malware detected")
                             self.IsFileVirusY_N.setStyleSheet("color: green")
                             self.IsFileVirusY_N.setText("NO!")
                             self.FilePath.setText("Detection Type: None")
@@ -1644,7 +1644,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                             # return button
                             self.ReturnToHomeTabButton.clicked.connect(lambda: self.Tabs.setCurrentIndex(0))     
             else:
-                notify(tray,"File Dialog", "Invalid selected file.", "AntiVirus_ico.ico")
+                notify(filepath,"status-warning-128.png",f"Selected file is invalid or/and not exist.","File scan")
                 
             # display file path
         def decryptFile(current_item):
@@ -1673,20 +1673,12 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
             if retval == 1024:
                 try:
                     os.remove(file)
-                    
-                    icon = QtGui.QIcon(current_dir + '\\res\\ico\\AntiVirus_icoGreen.svg') 
-                    tray = QtWidgets.QSystemTrayIcon() 
-                    tray.setIcon(icon) 
-                    tray.setVisible(True)
-                    notify(tray, "File Neutralized", f"The file [{file}] has been removed", "AntiVirus_icoGreen.svg")
-                    tray.setVisible(False)
+
+                    notify(file,"status-ok-128.png",f"A malware has been neutralized sucefully.", "Malware neutralized")
                 except:
-                    icon = QtGui.QIcon(current_dir + '\\res\\ico\\AntiVirus_icoGreen.svg') 
-                    tray = QtWidgets.QSystemTrayIcon() 
-                    tray.setIcon(icon) 
-                    tray.setVisible(True)
-                    notify(tray, "File NOT Neutralized", f"The file [{file}] cannot be removed.", "AntiVirus_icoRed.svg")
-                    tray.setVisible(False)
+
+                    notify(file,"status-warning-128.png",f"A error ocurred while neutralizing a malware. This file cannot be neutralized.", "Malware cannot be neutralized")
+                    
                 
                 
             else:
@@ -1909,7 +1901,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
             
             
             if folderpath == "":
-                notify(tray,"Folder Dialog", "Invalid folder selected.", "other\\icons8-palm-scan-100.png")
+                notify(folderpath,"status-warning-128.png",f"Selected folder is invalid or/and not exist.","Folder scan")
             else:
                 list_files(folderpath,self, tray)
         # change tabs buttons
