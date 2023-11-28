@@ -8,7 +8,6 @@ import requests
 from virustotal_python import Virustotal
 import hashlib
 from datetime import datetime
-import urllib.request
 from time import sleep, time
 from rich.console import Console
 import sqlite3
@@ -124,6 +123,7 @@ def updater(module="dataset"):
             return False;    
     
 def compileHashes():
+    global DatasetVersion__;
     global md5List;
     global sha256List;
     global rules;
@@ -177,6 +177,8 @@ def compileHashes():
         console.log(f"[red]Database connection[white] Returned a unexpected error. Verify if the 'hash' folder exist or open this app on powershell")
         exit();
 
+    DatasetVersion__ = getDatasetVersion()
+    
 def mode(status=None):
     global automaticUpdates;
     global scanHistory;
@@ -187,7 +189,7 @@ def mode(status=None):
     global metadefender;
     global LatestVersion__;
     global AppVersion__;
-
+    
     timeInitial__ = time();
     __NaN = 0
     __missing = 0
@@ -198,7 +200,7 @@ def mode(status=None):
 
         __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini")
         LatestVersion__ = __Page.content.decode('utf-8')
-        AppVersion__ = "1.2.6"
+        AppVersion__ = "1.2.7"
     
     except:
         
@@ -230,7 +232,7 @@ def mode(status=None):
     __updaterResult = update()
     __updaterDataResult = update("data")
     
-    DatasetVersion__ = getDatasetVersion()    
+        
     
     
     if __updaterDataResult == True:
@@ -2021,9 +2023,9 @@ def getDatasetVersion():
 
 def update(type="app"):
     DatasetVersion__ = getDatasetVersion()
-    __VersionGIT = "https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini"
-    __Page = urllib.request.urlopen(__VersionGIT)
-    LatestVersion__ = f"{__Page.read()}".replace("b","").replace("'","").replace("n","").replace("\\","")
+    
+    __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini")
+    LatestVersion__ = __Page.content.decode("utf-8")
     
 
 
@@ -2035,10 +2037,9 @@ def update(type="app"):
             return True;
     
     else:
-        __DataGIT = "https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/dataset.ini"
-        __PageData = urllib.request.urlopen(__DataGIT)
-        DatasetLatest__ = str(f"{__PageData.read()}".replace("b","").replace("'","").replace("n","").replace("\\",""))
         
+        __PageData = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/dataset.ini")
+        DatasetLatest__ = __PageData.content.decode("utf-8")
         
         if DatasetVersion__ == DatasetLatest__:
             return False;
