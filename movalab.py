@@ -200,7 +200,7 @@ def mode(status=None):
 
         __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini")
         LatestVersion__ = __Page.content.decode('utf-8')
-        AppVersion__ = "1.2.7"
+        AppVersion__ = "1.2.8"
     
     except:
         
@@ -1581,7 +1581,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                         console.log(F"[yellow]'{filename}'[white] cannot be verified with [yellow]'Metadenfender API'")
                         
                         
-                    self.FileHash.setText(f"File Hash: {hash}")
+                    self.FileHash.setText(f"File Hash: {hashMD5}")
                     if found == True:
                         timeFineshed__ = time();
                         console.log(F"'{filename}' is infected. [Done in {round(timeFineshed__ - timeInitial__, 2)}s]")
