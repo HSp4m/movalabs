@@ -1,7 +1,397 @@
-
 import "hash"
 import "pe"
 import "dotnet"
+
+rule MAL_CRIME_suspicious_hex_string_Jun21_1 : CRIME PE {
+    meta:
+        author = "Nils Kuhnert"
+        date = "2021-06-04"
+        description = "Triggers on parts of a big hex string available in lots of crime'ish PE files."
+        hash1 = "37d60eb2daea90a9ba275e16115848c95e6ad87d20e4a94ab21bd5c5875a0a34"
+        hash2 = "3380c8c56d1216fe112cbc8f1d329b59e2cd2944575fe403df5e5108ca21fc69"
+        hash3 = "cd283d89b1b5e9d2875987025009b5cf6b137e3441d06712f49e22e963e39888"
+        hash4 = "404efa6fb5a24cd8f1e88e71a1d89da0aca395f82d8251e7fe7df625cd8e80aa"
+        hash5 = "479bf3fb8cff50a5de3d3742ab4b485b563b8faf171583b1015f80522ff4853e"
+        threat = "Mal/Trojan.Gen"
+    strings:
+        $a1 = "07032114130C0812141104170C0412147F6A6A0C041F321104130C0412141104030C0412141104130C0412141104130C0412141104130C0412141104130C0412141104130C0412141104130C0412141122130C0412146423272A711221112B1C042734170408622513143D20262B0F323038692B312003271C170B3A2F286623340610241F001729210579223202642200087C071C17742417020620141462060F12141104130C0412141214001C0412011100160C0C002D2412130C0412141104130C04121A11041324001F140122130C0134171" ascii
+    condition:
+        uint16(0) == 0x5a4d and filesize < 10MB and all of them
+}
+
+rule MAL_CRIME_Unknown_LNK_Jun21_1: LNK POWERSHELL {
+    meta:
+        author = "Nils Kuhnert"
+        date = "2021-06-04"
+        description = "Triggers on malicious link files which calls powershell with an obfuscated payload and downloads an HTA file."
+        hash1 = "8fc7f25da954adcb8f91d5b0e1967e4a90ca132b280aa6ae73e150b55d301942"
+        hash2 = "f5da192f4e4dfb6b728aee1821d10bec6d68fb21266ce32b688e8cae7898a522"
+        hash3 = "183a9b3c04d16a1822c788d7a6e78943790ee2cdeea12a38e540281091316e45"
+        hash4 = "a38c6aa3e1c429a27226519b38f39f03b0b1b9d75fd43cd7e067c5e542967afe"
+        hash5 = "455f7b6b975fb8f7afc6295ec40dae5696f5063d1651f3b2477f10976a3b67b2"
+        threat = "Mal/Trojan.Gen"
+    strings:
+        $uid = "S-1-5-21-1437133880-1006698037-385855442-1004" wide
+    condition:
+        uint16(0) == 0x004c and all of them
+}
+
+rule MAL_CRIME_Unknown_ISO_Jun21_1 : ISO POWERSHELL LNK {
+    meta:
+        author = "Nils Kuhnert"
+        date = "2021-06-04"
+        description = "Triggers on ISO files that mimick NOBELIUM TTPs, but uses LNK files that call powershell instead."
+        hash1 = "425dbed047dd2ce760d0848ebf7ad04b1ca360f111d557fc7bf657ae89f86d36"
+        hash2 = "f6944b6bca627e219d9c5065f214f95eb2226897a3b823b645d0fd78c281b149"
+        hash3 = "14d70a8bdd64e9a936c2dc9caa6d4506794505e0e3870e3a25d9d59bcafb046e"
+        hash4 = "9b2ca8eb6db34b07647a74171a5ff4c0a2ca8000da9876ed2db6361958c5c080"
+        threat = "Mal/Trojan.Gen"
+    strings:
+        $uid = "S-1-5-21-1437133880-1006698037-385855442-1004" wide
+        $magic = "CD001" ascii
+    condition:
+        filesize < 5MB and all of them
+}
+
+rule DarkEYEv3_Cryptor {
+	meta:
+		description = "Rule to detect DarkEYEv3 encrypted executables (often malware)"
+		license = "Detection Rule License 1.1 https://github.com/Neo23x0/signature-base/blob/master/LICENSE"
+		author = "Florian Roth (Nextron Systems)"
+		reference = "http://darkeyev3.blogspot.fi/"
+		date = "2015-05-24"
+		hash0 = "6b854b967397f7de0da2326bdd5d39e710e2bb12"
+		hash1 = "d53149968eca654fc0e803f925e7526fdac2786c"
+		hash2 = "7e3a8940d446c57504d6a7edb6445681cca31c65"
+		hash3 = "d3dd665dd77b02d7024ac16eb0949f4f598299e7"
+		hash4 = "a907a7b74a096f024efe57953c85464e87275ba3"
+		hash5 = "b1c422155f76f992048377ee50c79fe164b22293"
+		hash6 = "29f5322ce5e9147f09e0a86cc23a7c8dc88721b9"
+		hash7 = "a0382d7c12895489cb37efef74c5f666ea750b05"
+		hash8 = "f3d5b71b7aeeb6cc917d5bb67e2165cf8a2fbe61"
+		score = 55
+        threat = "Mal/Trojan.Gen"
+	strings:
+		$s0 = "\\DarkEYEV3-" 
+	condition:
+		uint16(0) == 0x5a4d and $s0
+}
+
+
+rule PowerShell_Susp_Parameter_Combo : HIGHVOL FILE {
+   meta:
+      description = "Detects PowerShell invocation with suspicious parameters"
+      author = "Florian Roth (Nextron Systems)"
+      reference = "https://goo.gl/uAic1X"
+      date = "2017-03-12"
+      modified = "2022-09-15"
+      score = 60
+      threat = "UDS:SuspPoweshellInvocation"
+   strings:
+      /* Encoded Command */
+      $sa1 = " -enc " ascii wide nocase
+      $sa2 = " -EncodedCommand " ascii wide nocase
+      $sa3 = " /enc " ascii wide nocase
+      $sa4 = " /EncodedCommand " ascii wide nocase
+
+      /* Window Hidden */
+      $sb1 = " -w hidden " ascii wide nocase
+      $sb2 = " -window hidden " ascii wide nocase
+      $sb3 = " -windowstyle hidden " ascii wide nocase
+      $sb4 = " /w hidden " ascii wide nocase
+      $sb5 = " /window hidden " ascii wide nocase
+      $sb6 = " /windowstyle hidden " ascii wide nocase
+
+      /* Non Profile */
+      $sc1 = " -nop " ascii wide nocase
+      $sc2 = " -noprofile " ascii wide nocase
+      $sc3 = " /nop " ascii wide nocase
+      $sc4 = " /noprofile " ascii wide nocase
+
+      /* Non Interactive */
+      $sd1 = " -noni " ascii wide nocase
+      $sd2 = " -noninteractive " ascii wide nocase
+      $sd3 = " /noni " ascii wide nocase
+      $sd4 = " /noninteractive " ascii wide nocase
+
+      /* Exec Bypass */
+      $se1 = " -ep bypass " ascii wide nocase
+      $se2 = " -exec bypass " ascii wide nocase
+      $se3 = " -executionpolicy bypass " ascii wide nocase
+      $se4 = " -exec bypass " ascii wide nocase
+      $se5 = " /ep bypass " ascii wide nocase
+      $se6 = " /exec bypass " ascii wide nocase
+      $se7 = " /executionpolicy bypass " ascii wide nocase
+      $se8 = " /exec bypass " ascii wide nocase
+
+      /* Single Threaded - PowerShell Empire */
+      $sf1 = " -sta " ascii wide
+      $sf2 = " /sta " ascii wide
+
+      $fp1 = "Chocolatey Software" ascii wide
+      $fp2 = "VBOX_MSI_INSTALL_PATH" ascii wide
+      $fp3 = "\\Local\\Temp\\en-US.ps1" ascii wide
+      $fp4 = "Lenovo Vantage - Battery Gauge Helper" wide fullword
+      $fp5 = "\\LastPass\\lpwinmetro\\AppxUpgradeUwp.ps1" ascii
+      $fp6 = "# use the encoded form to mitigate quoting complications that full scriptblock transfer exposes" ascii /* MS TSSv2 - https://docs.microsoft.com/en-us/troubleshoot/windows-client/windows-troubleshooters/introduction-to-troubleshootingscript-toolset-tssv2 */
+      $fp7 = "Write-AnsibleLog \"INFO - s" ascii
+      $fp8 = "\\Packages\\Matrix42\\" ascii
+      $fp9 = "echo " ascii
+      $fp10 = "install" ascii fullword
+      $fp11 = "REM " ascii
+      $fp12 = "set /p " ascii
+      $fp13 = "rxScan Application" wide
+
+      $fpa1 = "All Rights"
+      $fpa2 = "<html"
+      $fpa2b = "<HTML"
+      $fpa3 = "Copyright"
+      $fpa4 = "License"
+      $fpa5 = "<?xml"
+      $fpa6 = "Help" fullword
+      $fpa7 = "COPYRIGHT"
+   condition:
+      filesize < 3000KB and 4 of ($s*) and not 1 of ($fp*) and uint32be(0) != 0x456C6646 /* EVTX - we don't wish to mix the entries together */
+}
+
+rule TrojanDownloader {
+	meta:
+		description = "Trojan Downloader - Flash Exploit Feb15"
+		license = "Detection Rule License 1.1 https://github.com/Neo23x0/signature-base/blob/master/LICENSE"
+		author = "Florian Roth (Nextron Systems)"
+		reference = "http://goo.gl/wJ8V1I"
+		date = "2015/02/11"
+		hash = "5b8d4280ff6fc9c8e1b9593cbaeb04a29e64a81e"
+		score = 60
+        threat = "Mal/Trojan.Gen"
+	strings:
+		$x1 = "Hello World!" fullword ascii
+		$x2 = "CONIN$" fullword ascii
+
+		$s6 = "GetCommandLineA" fullword ascii
+		$s7 = "ExitProcess" fullword ascii
+		$s8 = "CreateFileA" fullword ascii
+
+		$s5 = "SetConsoleMode" fullword ascii
+		$s9 = "TerminateProcess" fullword ascii
+		$s10 = "GetCurrentProcess" fullword ascii
+		$s11 = "UnhandledExceptionFilter" fullword ascii
+		$s3 = "user32.dll" fullword ascii
+		$s16 = "GetEnvironmentStrings" fullword ascii
+		$s2 = "GetLastActivePopup" fullword ascii
+		$s17 = "GetFileType" fullword ascii
+		$s19 = "HeapCreate" fullword ascii
+		$s20 = "VirtualFree" fullword ascii
+		$s21 = "WriteFile" fullword ascii
+		$s22 = "GetOEMCP" fullword ascii
+		$s23 = "VirtualAlloc" fullword ascii
+		$s24 = "GetProcAddress" fullword ascii
+		$s26 = "FlushFileBuffers" fullword ascii
+		$s27 = "SetStdHandle" fullword ascii
+		$s28 = "KERNEL32.dll" fullword ascii
+	condition:
+		$x1 and $x2 and ( all of ($s*) ) and filesize < 35000
+}
+
+
+rule IsmDoor_Jul17_A2 {
+   meta:
+      description = "Detects IsmDoor Malware"
+      license = "Detection Rule License 1.1 https://github.com/Neo23x0/signature-base/blob/master/LICENSE"
+      author = "Florian Roth (Nextron Systems)"
+      reference = "https://twitter.com/Voulnet/status/892104753295110145"
+      date = "2017-08-01"
+      hash1 = "be72c89efef5e59c4f815d2fce0da5a6fac8c90b86ee0e424868d4ae5e550a59"
+      hash2 = "ea1be14eb474c9f70e498c764aaafc8b34173c80cac9a8b89156e9390bd87ba8"
+      threat = "Mal/Trojan.Gen"
+   strings:
+      $s1 = "powershell -exec bypass -file \"" fullword ascii
+      $s2 = "PAQlFcaWUaFkVICEx2CkNCUUpGcA" ascii
+      $s3 = "\\Documents" ascii
+      $s4 = "\\Libraries" ascii
+   condition:
+      ( uint16(0) == 0x5a4d and filesize < 300KB and 3 of them )
+}
+
+rule Unknown_Malware_Sample_Jul17_2 {
+   meta:
+      description = "Detects unknown malware sample with pastebin RAW URL"
+      license = "Detection Rule License 1.1 https://github.com/Neo23x0/signature-base/blob/master/LICENSE"
+      author = "Florian Roth (Nextron Systems)"
+      reference = "https://goo.gl/iqH8CK"
+      date = "2017-08-01"
+      hash1 = "3530d480db082af1823a7eb236203aca24dc3685f08c301466909f0794508a52"
+      threat = "Mal/Trojan.Gen"
+   strings:
+      $s1 = "4System.Web.Services.Protocols.SoapHttpClientProtocol" fullword ascii
+      $s2 = "https://pastebin.com/raw/" wide
+      $s3 = "My.Computer" fullword ascii
+      $s4 = "MyTemplate" fullword ascii
+   condition:
+      ( uint16(0) == 0x5a4d and filesize < 200KB and all of them )
+}
+
+
+rule win_vhd_ransomware_auto {
+
+    meta:
+        author = "Felix Bilstein - yara-signator at cocacoding dot com"
+        date = "2023-07-11"
+        version = "1"
+        description = "Detects win.vhd_ransomware."
+        info = "autogenerated rule brought to you by yara-signator"
+        tool = "yara-signator v0.6.0"
+        signator_config = "callsandjumps;datarefs;binvalue"
+        malpedia_reference = "https://malpedia.caad.fkie.fraunhofer.de/details/win.vhd_ransomware"
+        malpedia_rule_date = "20230705"
+        malpedia_hash = "42d0574f4405bd7d2b154d321d345acb18834a41"
+        malpedia_version = "20230715"
+        malpedia_license = "CC BY-SA 4.0"
+        malpedia_sharing = "TLP:WHITE"
+        threat = "Ransom:W32/VHDLocker"
+
+    /* DISCLAIMER
+     * The strings used in this rule have been automatically selected from the
+     * disassembly of memory dumps and unpacked files, using YARA-Signator.
+     * The code and documentation is published here:
+     * https://github.com/fxb-cocacoding/yara-signator
+     * As Malpedia is used as data source, please note that for a given
+     * number of families, only single samples are documented.
+     * This likely impacts the degree of generalization these rules will offer.
+     * Take the described generation method also into consideration when you
+     * apply the rules in your use cases and assign them confidence levels.
+     */
+
+
+    strings:
+        $sequence_0 = { 6a04 68???????? 50 ffd6 8b15???????? }
+            // n = 5, score = 100
+            //   6a04                 | push                4
+            //   68????????           |                     
+            //   50                   | push                eax
+            //   ffd6                 | call                esi
+            //   8b15????????         |                     
+
+        $sequence_1 = { 68000000c0 68???????? ff15???????? 8bf8 893d???????? 83ffff 0f84c4000000 }
+            // n = 7, score = 100
+            //   68000000c0           | push                0xc0000000
+            //   68????????           |                     
+            //   ff15????????         |                     
+            //   8bf8                 | mov                 edi, eax
+            //   893d????????         |                     
+            //   83ffff               | cmp                 edi, -1
+            //   0f84c4000000         | je                  0xca
+
+        $sequence_2 = { 33ff 57 57 ff15???????? 85c0 0f8469010000 }
+            // n = 6, score = 100
+            //   33ff                 | xor                 edi, edi
+            //   57                   | push                edi
+            //   57                   | push                edi
+            //   ff15????????         |                     
+            //   85c0                 | test                eax, eax
+            //   0f8469010000         | je                  0x16f
+
+        $sequence_3 = { 56 57 83fbff 7478 8b750c }
+            // n = 5, score = 100
+            //   56                   | push                esi
+            //   57                   | push                edi
+            //   83fbff               | cmp                 ebx, -1
+            //   7478                 | je                  0x7a
+            //   8b750c               | mov                 esi, dword ptr [ebp + 0xc]
+
+        $sequence_4 = { 0f8491020000 8d9b00000000 8b4d1c 295ddc 8b4508 83f910 }
+            // n = 6, score = 100
+            //   0f8491020000         | je                  0x297
+            //   8d9b00000000         | lea                 ebx, [ebx]
+            //   8b4d1c               | mov                 ecx, dword ptr [ebp + 0x1c]
+            //   295ddc               | sub                 dword ptr [ebp - 0x24], ebx
+            //   8b4508               | mov                 eax, dword ptr [ebp + 8]
+            //   83f910               | cmp                 ecx, 0x10
+
+        $sequence_5 = { 833a00 7509 48 83ea04 83f801 7ff2 8945fc }
+            // n = 7, score = 100
+            //   833a00               | cmp                 dword ptr [edx], 0
+            //   7509                 | jne                 0xb
+            //   48                   | dec                 eax
+            //   83ea04               | sub                 edx, 4
+            //   83f801               | cmp                 eax, 1
+            //   7ff2                 | jg                  0xfffffff4
+            //   8945fc               | mov                 dword ptr [ebp - 4], eax
+
+        $sequence_6 = { 899485d4fcffff 40 83c104 3b85d0fcffff 7ceb 33c0 8d4b04 }
+            // n = 7, score = 100
+            //   899485d4fcffff       | mov                 dword ptr [ebp + eax*4 - 0x32c], edx
+            //   40                   | inc                 eax
+            //   83c104               | add                 ecx, 4
+            //   3b85d0fcffff         | cmp                 eax, dword ptr [ebp - 0x330]
+            //   7ceb                 | jl                  0xffffffed
+            //   33c0                 | xor                 eax, eax
+            //   8d4b04               | lea                 ecx, [ebx + 4]
+
+        $sequence_7 = { 39852c030000 7e14 8d4e04 8b948530030000 }
+            // n = 4, score = 100
+            //   39852c030000         | cmp                 dword ptr [ebp + 0x32c], eax
+            //   7e14                 | jle                 0x16
+            //   8d4e04               | lea                 ecx, [esi + 4]
+            //   8b948530030000       | mov                 edx, dword ptr [ebp + eax*4 + 0x330]
+
+        $sequence_8 = { 8d57fe 83c010 83fa3c 0f820dfdffff 8b01 }
+            // n = 5, score = 100
+            //   8d57fe               | lea                 edx, [edi - 2]
+            //   83c010               | add                 eax, 0x10
+            //   83fa3c               | cmp                 edx, 0x3c
+            //   0f820dfdffff         | jb                  0xfffffd13
+            //   8b01                 | mov                 eax, dword ptr [ecx]
+
+        $sequence_9 = { 893c86 40 83e904 3bc2 7cf3 33c0 b9c8000000 }
+            // n = 7, score = 100
+            //   893c86               | mov                 dword ptr [esi + eax*4], edi
+            //   40                   | inc                 eax
+            //   83e904               | sub                 ecx, 4
+            //   3bc2                 | cmp                 eax, edx
+            //   7cf3                 | jl                  0xfffffff5
+            //   33c0                 | xor                 eax, eax
+            //   b9c8000000           | mov                 ecx, 0xc8
+
+    condition:
+        7 of them and filesize < 275456
+}
+
+
+rule SUSP_RANSOMWARE_Indicator_Jul20 {
+   meta:
+      description = "Detects ransomware indicator"
+      author = "Florian Roth (Nextron Systems)"
+      reference = "https://securelist.com/lazarus-on-the-hunt-for-big-game/97757/"
+      date = "2020-07-28"
+      score = 60
+      hash1 = "52888b5f881f4941ae7a8f4d84de27fc502413861f96ee58ee560c09c11880d6"
+      hash2 = "5e78475d10418c6938723f6cfefb89d5e9de61e45ecf374bb435c1c99dd4a473"
+      hash3 = "6cb9afff8166976bd62bb29b12ed617784d6e74b110afcf8955477573594f306"
+      threat = "SUSP:RansomIndicator"
+   strings:
+      $ = "Decrypt.txt" ascii wide 
+      $ = "DecryptFiles.txt" ascii wide
+      $ = "Decrypt-Files.txt" ascii wide
+      $ = "DecryptFilesHere.txt" ascii wide
+      $ = "DECRYPT.txt" ascii wide 
+      $ = "DecryptFiles.txt" ascii wide
+      $ = "DECRYPT-FILES.txt" ascii wide
+      $ = "DecryptFilesHere.txt" ascii wide
+      $ = "DECRYPT_INSTRUCTION.TXT" ascii wide 
+      $ = "FILES ENCRYPTED.txt" ascii wide
+      $ = "DECRYPT MY FILES" ascii wide 
+      $ = "DECRYPT-MY-FILES" ascii wide 
+      $ = "DECRYPT_MY_FILES" ascii wide
+      $ = "DECRYPT YOUR FILES" ascii wide  
+      $ = "DECRYPT-YOUR-FILES" ascii wide 
+      $ = "DECRYPT_YOUR_FILES" ascii wide 
+      $ = "DECRYPT FILES.txt" ascii wide
+   condition:
+      uint16(0) == 0x5a4d and
+      filesize < 1400KB and
+      1 of them
+}
 
 rule EnigmaPacker_Rare {
    meta:
@@ -12,7 +402,7 @@ rule EnigmaPacker_Rare {
       date = "2017-04-27"
       score = 60
       hash1 = "77be6e80a4cfecaf50d94ee35ddc786ba1374f9fe50546f1a3382883cb14cec9"
-      threat = "Mal:Trojan.Gen"
+      threat = "Mal/Trojan.Gen"
    strings:
       $s1 = "P.rel$oc$" fullword ascii
       $s2 = "ENIGMA" fullword ascii
@@ -27,7 +417,7 @@ rule Enigma_Protected_Malware_May17_RhxFiles {
       reference = "Internal Research"
       date = "2017-05-02"
       hash1 = "2187d6bd1794bf7b6199962d8a8677f19e4382a124c30933d01aba93cc1f0f15"
-      threat = "Mal:Trojan.Gen"
+      threat = "Mal/Trojan.Gen"
    strings:
       $op1 = { bd 9c 74 f6 7a 3a f7 94 c5 7d 7c 7c 7c 7e ae 73 }
       $op2 = { 82 62 6b 6b 6b 68 a5 ea aa 69 6b 6b 6b 3a 3b 94 }
@@ -43,7 +433,7 @@ rule Enigma_Protected_Malware {
       reference = "https://goo.gl/OEVQ9w"
       date = "2017-02-03"
       hash1 = "d4616f9706403a0d5a2f9a8726230a4693e4c95c58df5c753ccc684f1d3542e2"
-      threat = "Mal:Trojan.Gen"
+      threat = "Mal/Trojan.Gen"
    strings:
       $s1 = { 5d 5d 5d aa bf 5e 95 d6 dc 51 5d 5d 5d 5e 98 0d }
       $s2 = { 52 d9 47 5d 5d 5d dd a6 b4 52 d9 4c 5d 5d 5d 3b }
@@ -236,7 +626,7 @@ rule agent_tesla
         version = "1.0"
         reference = "https://thisissecurity.stormshield.com/2018/01/12/agent-tesla-campaign/"
         namespace = "agent_tesla"
-        threat = "Trojan:W32/TeslaAgent"
+        threat = "Trojan:Ransom:/TeslaAgent"
 
     strings:
 
