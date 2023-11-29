@@ -201,7 +201,7 @@ def mode(status=None):
 
         __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini")
         LatestVersion__ = __Page.content.decode('utf-8')
-        AppVersion__ = "1.2.9"
+        AppVersion__ = "1.3.0"
     
     except:
         
@@ -445,8 +445,8 @@ def quickScan(folders, self):
                                 historyFilesDetected.append(file_name)
                                 __founded += 1;
                                 __foundInFolder += 1;
-                                console.log(f"[red]'{file_name}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
-                                self.resultWidget.insertItem(0,f"{file} (UDS:DangerousObject.multi.generic)")
+                                console.log(f"[red]'{file_name}'[white] is infected with [red]'Mal/Trojan.Gen'")
+                                self.resultWidget.insertItem(0,f"{file} (Mal/Trojan.Gen)")
                                 self.Tabs.setCurrentIndex(3)
                             
                             if hashSha256 in sha256List and file_name not in historyFilesDetected:
@@ -467,7 +467,7 @@ def quickScan(folders, self):
                                     if threat == "?":
                                         threat = match.meta.get('malware_family', "?")
                                         if threat == "?":
-                                            threat = "UDS:DangerousObject.multi.generic"
+                                            threat = "Mal/Trojan.Gen"
                                             
                                     console.log(f"[red]'{file_name}'[white] is infected with [red]'{threat}'")          
                                     self.resultWidget.insertItem(0,f"{file} ({threat})")
@@ -687,11 +687,11 @@ def list_files(dir, self, tray):
                         if hashMD5 in md5List and file_name not in historyFilesDetected:
                             
                             historyFilesDetected.append(file_name)
-                            historyDetections.insert(0,f"{fileR}: UDS:DangerousObject.multi.generic")
+                            historyDetections.insert(0,f"{fileR}: Mal/Trojan.Gen")
                             
-                            console.log(f"[red]'{file_name}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
+                            console.log(f"[red]'{file_name}'[white] is infected with [red]'Mal/Trojan.Gen'")
                             
-                            self.resultWidget.insertItem(fulltotal,f"{file_name} (UDS:DangerousObject.multi.generic)")
+                            self.resultWidget.insertItem(fulltotal,f"{file_name} (Mal/Trojan.Gen)")
                             self.Tabs.setCurrentIndex(3)
                                         
                             
@@ -711,7 +711,7 @@ def list_files(dir, self, tray):
                                     if threat == "?":
                                         threat = match.meta.get('malware_family', "?")
                                         if threat == "?":
-                                            threat = "UDS:DangerousObject.multi.generic"
+                                            threat = "Mal/Trojan.Gen"
 
 
 
@@ -1309,7 +1309,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                         threat = match.meta.get('malware_family', "?")
                                         
                                         if threat == "?": 
-                                            threat = "UDS:DangerousObject.multi.generic"
+                                            threat = "Mal/Trojan.Gen"
                                             
                                     console.log(F"[red]'{filename}'[white] is infected with [red]'{threat}'")
                                     scan_end(self, 1, f"File scan: {filepath}")
@@ -1346,8 +1346,8 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                     
                     if hashMD5 in md5List and found != True:
                             found = True;
-                            console.log(f"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
-                            notify(filepath,"status-error-128.png",f"Type: UDS:DangerousObject.multi.generic \nDetection: Hash list","Malware Detected")
+                            console.log(f"[red]'{filename}'[white] is infected with [red]'Mal/Trojan.Gen'")
+                            notify(filepath,"status-error-128.png",f"Type: Mal/Trojan.Gen \nDetection: Hash list","Malware Detected")
                             self.FilePath.setText("Detection Type: Hash List")
                             scan_end(self, 1, f"File scan: {filepath}")
                     
@@ -1380,7 +1380,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                             self.DetectionsText.setText(f"{str(detections)} INVALID | {str(not_detections)}")
                                             found = False;
                                         if detections > 10:
-                                            console.log(F"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
+                                            console.log(F"[red]'{filename}'[white] is infected with [red]'Mal/Trojan.Gen'")
                                             
                                             scan_end(self, 1, f"File scan: {filepath}")
                                             notify(filepath,"status-error-128.png",f"Detection type: VirusTotal","Malware Detected")
@@ -1391,7 +1391,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                             
                                         elif detections > 4:
                                             scan_end(self, 1, f"File scan: {filepath}")
-                                            console.log(F"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
+                                            console.log(F"[red]'{filename}'[white] is infected with [red]'Mal/Trojan.Gen'")
                                             
                                             notify(filepath,"status-error-128.png",f"Detection type: VirusTotal","Malware Detected")
                                             self.FilePath.setText("Detection Type:  Virustotal")
@@ -1401,7 +1401,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                             
                                         elif detections > not_detections:
                                             scan_end(self, 1, f"File scan: {filepath}")
-                                            console.log(F"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
+                                            console.log(F"[red]'{filename}'[white] is infected with [red]'Mal/Trojan.Gen'")
                                             
                                             notify(filepath,"status-error-128.png",f"Detection type: VirusTotal","Malware Detected")
                                             self.FilePath.setText("Detection Type:  Virustotal")
@@ -1532,7 +1532,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                
                                 if M_detections > 3:
                                     scan_end(self, 1, f"File scan: {filepath}")
-                                    console.log(F"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
+                                    console.log(F"[red]'{filename}'[white] is infected with [red]'Mal/Trojan.Gen'")
                                     
                                     found = True
                                     self.MetaDefenderDetectionsText.setStyleSheet("color: red")
@@ -1545,7 +1545,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                         pass
                                 if M_detections > half_M_not_detections:
                                     scan_end(self, 1, f"File scan: {filepath}")
-                                    console.log(F"[red]'{filename}'[white] is infected with [red]'UDS:DangerousObject.multi.generic'")
+                                    console.log(F"[red]'{filename}'[white] is infected with [red]'Mal/Trojan.Gen'")
                                     
                                     self.FilePath.setText("Detection Type:  MetaDefender")
                                     found = True
