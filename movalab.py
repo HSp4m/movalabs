@@ -201,7 +201,7 @@ def mode(status=None):
 
         __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini")
         LatestVersion__ = __Page.content.decode('utf-8')
-        AppVersion__ = "1.3.0"
+        AppVersion__ = "1.3.1"
     
     except:
         
@@ -429,7 +429,7 @@ def quickScan(folders, self):
                             hashMD5 = hashlib.md5(file_content).hexdigest()
                             hashSha256 = hashlib.sha256(file_content).hexdigest()
                             
-                            __InDB = db_cursor.execute(f"SELECT hash, name FROM HashDB WHERE hash = '{hash}'").fetchone()
+                            __InDB = db_cursor.execute(f"SELECT hash, name FROM HashDB WHERE hash = '{hashMD5}'").fetchone()
                             
                             if isinstance(__InDB, tuple) and file_name not in historyFilesDetected:
                                 __foundInFolder += 1;
@@ -445,8 +445,8 @@ def quickScan(folders, self):
                                 historyFilesDetected.append(file_name)
                                 __founded += 1;
                                 __foundInFolder += 1;
-                                console.log(f"[red]'{file_name}'[white] is infected with [red]'Mal/Trojan.Gen'")
-                                self.resultWidget.insertItem(0,f"{file} (Mal/Trojan.Gen)")
+                                console.log(f"[red]'{file_name}'[white] is infected with [red]'MalHash/Trojan.Gen'")
+                                self.resultWidget.insertItem(0,f"{file} (MalHash/Trojan.Gen)")
                                 self.Tabs.setCurrentIndex(3)
                             
                             if hashSha256 in sha256List and file_name not in historyFilesDetected:
@@ -486,7 +486,7 @@ def quickScan(folders, self):
         else:
             timeFineshed__ = time();
             console.log(f"[red]'{__founded}' malwares found. [Done in {round(timeFineshed__ - timeInitial__, 2)}s]")    
-            notify(None,"status-error-128.png", f"{__founded} Malwares detected in quick scan. Open the app for more information.","Malwares detected")
+            notify(None,"status-warning-128.png", f"{__founded} Malwares detected in quick scan. Open the app for more information.","Malwares detected")
 def scaninfo(self):
     historyResult = []
     __get = 0
@@ -671,7 +671,7 @@ def list_files(dir, self, tray):
                             self.Tabs.setCurrentIndex(3)
 
                         
-                        __InDB = db_cursor.execute(f"SELECT hash, name FROM HashDB WHERE hash = '{hash}'").fetchone()
+                        __InDB = db_cursor.execute(f"SELECT hash, name FROM HashDB WHERE hash = '{hashMD5}'").fetchone()
                         
                         if isinstance(__InDB, tuple) and file_name not in historyFilesDetected:
                             
@@ -687,11 +687,11 @@ def list_files(dir, self, tray):
                         if hashMD5 in md5List and file_name not in historyFilesDetected:
                             
                             historyFilesDetected.append(file_name)
-                            historyDetections.insert(0,f"{fileR}: Mal/Trojan.Gen")
+                            historyDetections.insert(0,f"{fileR}: MalHash/Trojan.Gen")
                             
-                            console.log(f"[red]'{file_name}'[white] is infected with [red]'Mal/Trojan.Gen'")
+                            console.log(f"[red]'{file_name}'[white] is infected with [red]'MalHash/Trojan.Gen'")
                             
-                            self.resultWidget.insertItem(fulltotal,f"{file_name} (Mal/Trojan.Gen)")
+                            self.resultWidget.insertItem(fulltotal,f"{file_name} (MalHash/Trojan.Gen)")
                             self.Tabs.setCurrentIndex(3)
                                         
                             
@@ -746,7 +746,7 @@ def list_files(dir, self, tray):
         scan_end(self, len(historyFilesDetected), f"Folder scan: {dir}") 
         historyPaths.append(dir)
         
-        notify(dir, "status-error-128.png", f"{len(historyFilesDetected)} Malwares found in [{dir}]!", "Malware found.")
+        notify(dir, "status-warning-128.png", f"{len(historyFilesDetected)} Malwares found in [{dir}]!", "Malware found.")
         sleep(1)
         console.log(f"[red]{len(historyFilesDetected)}[white] malwares found in [red]'{dir}' [Done in {round(timeFineshed__ - timeInitial__, 2)}s]")
             
@@ -1313,7 +1313,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                             
                                     console.log(F"[red]'{filename}'[white] is infected with [red]'{threat}'")
                                     scan_end(self, 1, f"File scan: {filepath}")
-                                    notify(filepath,"status-error-128.png",f"Type: {threat} \nDetection: Yara rules","Malware Detected")
+                                    notify(filepath,"status-warning-128.png",f"Type: {threat} \nDetection: Yara rules","Malware Detected")
                                     self.FilePath.setText(f"Detection Type: Yara Rules ({threat})")
                                     
                                     
@@ -1328,12 +1328,12 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                             threat = getMalwareType256(hashSha256)
                             console.log(f"[red]'{filename}'[white] is infected with [red]'{threat}'")
                             scan_end(self, 1, f"File scan: {filepath}")
-                            notify(filepath,"status-error-128.png",f"Type: {threat} \nDetection: Hash list","Malware Detected")
+                            notify(filepath,"status-warning-128.png",f"Type: {threat} \nDetection: Hash list","Malware Detected")
                             self.FilePath.setText("Detection Type: Hash List")
                                         
 
                         
-                    __InDB = db_cursor.execute(f"SELECT hash, name FROM HashDB WHERE hash = '{hash}'").fetchone()
+                    __InDB = db_cursor.execute(f"SELECT hash, name FROM HashDB WHERE hash = '{hashMD5}'").fetchone()
                         
                     if isinstance(__InDB, tuple) and found != True:
                         
@@ -1341,13 +1341,13 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                         self.FilePath.setText("Detection Type: Hash List")    
                         console.log(f"[red]'{filename}'[white] is infected with [red]'{__InDB[1]}'")
                         scan_end(self, 1, f"File scan: {filepath}")
-                        notify(filepath,"status-error-128.png",f"Type: {__InDB[1]} \nDetection: Hash list","Malware Detected")
+                        notify(filepath,"status-warning-128.png",f"Type: {__InDB[1]} \nDetection: Hash list","Malware Detected")
                     
                     
                     if hashMD5 in md5List and found != True:
                             found = True;
-                            console.log(f"[red]'{filename}'[white] is infected with [red]'Mal/Trojan.Gen'")
-                            notify(filepath,"status-error-128.png",f"Type: Mal/Trojan.Gen \nDetection: Hash list","Malware Detected")
+                            console.log(f"[red]'{filename}'[white] is infected with [red]'MalHash/Trojan.Gen'")
+                            notify(filepath,"status-warning-128.png",f"Type: MalHash/Trojan.Gen \nDetection: Hash list","Malware Detected")
                             self.FilePath.setText("Detection Type: Hash List")
                             scan_end(self, 1, f"File scan: {filepath}")
                     
@@ -1383,7 +1383,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                             console.log(F"[red]'{filename}'[white] is infected with [red]'Mal/Trojan.Gen'")
                                             
                                             scan_end(self, 1, f"File scan: {filepath}")
-                                            notify(filepath,"status-error-128.png",f"Detection type: VirusTotal","Malware Detected")
+                                            notify(filepath,"status-warning-128.png",f"Detection type: VirusTotal","Malware Detected")
                                             self.FilePath.setText("Detection Type:  Virustotal")
                                             self.DetectionsText.setStyleSheet("color: red")
                                             self.DetectionsText.setText(f"{str(detections)} | {str(not_detections)}")
@@ -1393,7 +1393,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                             scan_end(self, 1, f"File scan: {filepath}")
                                             console.log(F"[red]'{filename}'[white] is infected with [red]'Mal/Trojan.Gen'")
                                             
-                                            notify(filepath,"status-error-128.png",f"Detection type: VirusTotal","Malware Detected")
+                                            notify(filepath,"status-warning-128.png",f"Detection type: VirusTotal","Malware Detected")
                                             self.FilePath.setText("Detection Type:  Virustotal")
                                             self.DetectionsText.setStyleSheet("color: yellow")
                                             self.DetectionsText.setText(f"{str(detections)} | {str(not_detections)}")
@@ -1403,7 +1403,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                             scan_end(self, 1, f"File scan: {filepath}")
                                             console.log(F"[red]'{filename}'[white] is infected with [red]'Mal/Trojan.Gen'")
                                             
-                                            notify(filepath,"status-error-128.png",f"Detection type: VirusTotal","Malware Detected")
+                                            notify(filepath,"status-warning-128.png",f"Detection type: VirusTotal","Malware Detected")
                                             self.FilePath.setText("Detection Type:  Virustotal")
                                             self.DetectionsText.setStyleSheet("color: red")
                                             self.DetectionsText.setText(f"{str(detections)} | {str(not_detections)}")
@@ -1550,7 +1550,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                     self.FilePath.setText("Detection Type:  MetaDefender")
                                     found = True
                                     self.MetaDefenderDetectionsText.setStyleSheet("color: red")
-                                    notify(filepath,"status-error-128.png",f"Detection type: Metadefender","Malware Detected")
+                                    notify(filepath,"status-warning-128.png",f"Detection type: Metadefender","Malware Detected")
                                     self.MetaDefenderDetectionsText.setText(f"{str(M_detections)} | {str(M_not_detections)}")
                                     self.IsFileVirusY_N.setStyleSheet("color: red")
                                     if found == False:
