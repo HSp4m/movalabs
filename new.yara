@@ -69628,7 +69628,7 @@ rule PowerShell_Susp_Parameter_Combo : HIGHVOL FILE {
       date = "2017-03-12"
       modified = "2022-09-15"
       score = 60
-      threat = "UDS:SuspPoweshellInvocation"
+      threat = "HEUR:SuspParams-Powershell"
    strings:
       /* Encoded Command */
       $sa1 = " -enc " ascii wide nocase
@@ -69705,7 +69705,7 @@ rule TrojanDownloader {
 		date = "2015/02/11"
 		hash = "5b8d4280ff6fc9c8e1b9593cbaeb04a29e64a81e"
 		score = 60
-        threat = "Mal/Trojan.Gen"
+      threat = "Mal/Trojan.Gen"
 	strings:
 		$x1 = "Hello World!" fullword ascii
 		$x2 = "CONIN$" fullword ascii
@@ -70868,21 +70868,30 @@ rule Win32_Ransomware_CryptoLocker : tc_detection malicious
         ($entrypoint_all at pe.entry_point))
 }
 
-rule potential_python_keylogger  {
+rule potential_PyKeylogger  {
 
     meta:
         author          = "Movalabs"
-
-        threat          = "BehavesLike:W32/PyKeylogger"
-        namespace       = "potential_python_keylogger"
+        threat          = "HEUR:Generic-PythonKeylogger"
 
     strings:
 
         $s1 = "def OnKeyboardEvent" fullword ascii
         $s2 = "legal disclaimer: Usage of this keylogger for attacking targets without prior mutual consent is illegal. It is the end user's responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse or damage caused by this program."
-        $s3 = "file_log = 'C:\\Program Files\\keylogger\\log.txt'" fullword ascii
-        $s4 = "hooks_manager = pyHook.HookManager()" fullword ascii
-        $s5 = "hooks_manager.KeyDown = OnKeyboardEvent" fullword ascii
+        $s3 = "file_log =" fullword ascii
+        $s4 = "pyHook.HookManager()" fullword ascii
+        $s5 = ".KeyDown" fullword ascii
+        $s6 = "logging.basicConfig"
+        $s7 = "pyHook" fullword ascii
+        $s8 = "chr(event.Ascii)" fullword ascii
+        $s9 = "logging.log(10,chr(event.Ascii))" fullword ascii
+        $s10 = "import pyxhook"
+        $s11 = "pyxhook.HookManager"
+        $s12 = ".KeyDown ="
+        $s13 = ".HookKeyboard()"
+        $s14 = "logging.getLogger"
+        $s15 = "if event.Ascii !=0 or 8"
+        $s16 = ".PumpMessages()"
 
     condition:
         2 of them
@@ -70933,25 +70942,6 @@ rule eicar_substring {
         all of them
 }
 
-rule potential_python__file_encryption {
-    /*
-        A python ransomware teste signature
-    */
-    meta:
-        description = "Python file encryption substring detection"
-        threat = "BehavesLike:W32/PyRansomware.Gen"
-        author = "Movalabs"
-        Threat_level = "5"
-        namespace = "potential_python__file_encryption"
-
-    strings:
-
-        $import_string = "from cryptography.fernet import Fernet" fullword ascii
-
-    condition:
-        all of them
-
-}
 
 rule is__Mirai_gen7 {
         meta:
@@ -71281,7 +71271,7 @@ rule INDICATOR_SUSPICIOUS_GENRansomware {
         description = "detects command variations typically used by ransomware"
         author = "ditekSHen"
         namespace = "INDICATOR_SUSPICIOUS_GENRansomware"
-        threat = "BehavesLike:GenRansomware"
+        threat = "HEUR:Generic-FileEncryptor[Ransom]"
 
 
     strings:
@@ -72449,7 +72439,7 @@ rule INDICATOR_SUSPICIOUS_EXE_UACBypass_EventViewer {
     meta:
         description = "detects Windows exceutables potentially bypassing UAC using eventvwr.exe"
         author = "ditekSHen"
-        threat = "BehavesLike:UACBypass/Evenvwr"
+        threat = "HEUR:UACBypass/Evenvwr"
     strings:
         $s1 = "\\Classes\\mscfile\\shell\\open\\command" ascii wide nocase
         $s2 = "eventvwr.exe" ascii wide nocase
@@ -72461,7 +72451,7 @@ rule INDICATOR_SUSPICIOUS_EXE_UACBypass_CleanMgr {
     meta:
         description = "detects Windows exceutables potentially bypassing UAC using cleanmgr.exe"
         author = "ditekSHen"
-        threat = "BehavesLike:UACBypass/cleanmgr"
+        threat = "HEUR:UACBypass/cleanmgr"
     strings:
         $s1 = "\\Enviroment\\windir" ascii wide nocase
         $s2 = "\\system32\\cleanmgr.exe" ascii wide nocase
@@ -72500,7 +72490,7 @@ rule INDICATOR_SUSPICIOUS_AMSI_Bypass {
     meta:
         author = "ditekSHen"
         description = "Detects AMSI bypass pattern"
-        threat = "BehavesLike:AMSIBypasser"
+        threat = "HEUR:AMSIBypasser"
     strings:
         $v1_1 = "[Ref].Assembly.GetType(" ascii nocase
         $v1_2 = "System.Management.Automation.AmsiUtils" ascii
@@ -73157,7 +73147,7 @@ rule INDICATOR_SUSPICIOUS_EXE_UACBypass_CMSTPCOM {
     meta:
         description = "Detects Windows exceutables bypassing UAC using CMSTP COM interfaces. MITRE (T1218.003)"
         author = "ditekSHen"
-        threat = "BehavesLike:UACBypasser/CMSTP"
+        threat = "HEUR:UACBypasser/CMSTP"
     strings:
         // CMSTPLUA
         $guid1 = "{3E5FC7F9-9A51-4367-9063-A120244FBEC7}" ascii wide nocase
@@ -73221,7 +73211,7 @@ rule MALWARE_Win_zgRAT {
     meta:
         author = "ditekSHen"
         description = "Detects zgRAT"
-        threat = "BehavesLike:Trojan.MSIL.zgRAT"
+        threat = "HEUR:Trojan.MSIL.zgRAT"
     strings:
         $s1 = "file:///" fullword wide
         $s2 = "{11111-22222-10009-11112}" fullword wide
@@ -73282,7 +73272,7 @@ rule INDICATOR_EXE_Packed_ConfuserEx {
         description = "Detects executables packed with ConfuserEx Mod"
         snort2_sid = "930016-930018"
         snort3_sid = "930005-930006"
-        threat = "BehavesLike:ConfuserExMOD"
+        threat = "HEUR:ConfuserExMOD"
     strings:
         $s1 = "ConfuserEx " ascii
         $s2 = "ConfusedByAttribute" fullword ascii
@@ -73302,7 +73292,7 @@ rule SUSP_INDICATOR_RTF_MalVer_Objects { //phns-1666275333
       score = 65
       hash1 = "43812ca7f583e40b3e3e92ae90a7e935c87108fa863702aa9623c6b7dc3697a2"
       hash2 = "a31da6c6a8a340901f764586a28bd5f11f6d2a60a38bf60acd844c906a0d44b1"
-      threat = "BehavesLike:Exploit/Rtf"
+      threat = "HEUR:Exploit-Rtf"
    strings:
       // Embedded Objects
       $obj1 = "\\objhtml" ascii
@@ -73630,7 +73620,7 @@ rule MokerTrojan
     meta:
         author = "malwarebytes"
         reference = "https://blog.malwarebytes.com/threat-analysis/2017/04/elusive-moker-trojan/"
-        threat = "BehavesLike:Trojan.Dalexis.Gen"
+        threat = "HEUR:Trojan-Generic-Dalexis"
     strings:
         $mz = "MZ"
         $key = {3D FF 24 8B 92 C1 D6 9D}

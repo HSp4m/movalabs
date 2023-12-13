@@ -46,34 +46,34 @@ def updater(module="dataset"):
 
         if requestMd5.status_code == 200 and requestSha256.status_code == 200 and requestSql.status_code == 200 and requestYara.status_code == 200 and requestDataset.status_code == 200:
             
-            if os.path.isfile(current_dir + "/hash/md5.txt") and os.path.isfile(current_dir + "/hash/256.txt") and os.path.isfile(current_dir + "/hash/HashDB") and os.path.isfile(current_dir + "/settings/dataset.ini"):
-                contentMd5 = requestMd5.content;
-                contentSha256 = requestSha256.content;
-                contentSql = requestSql.content;
-                contentYara = requestYara.content;
-                contentDataset = requestDataset.content;
+            contentMd5 = requestMd5.content;
+            contentSha256 = requestSha256.content;
+            contentSql = requestSql.content;
+            contentYara = requestYara.content;
+            contentDataset = requestDataset.content;
                 
-                fileMD5 = open(current_dir + "/hash/md5.txt", "wb");
-                fileSha256 = open(current_dir + "/hash/256.txt", "wb");
-                fileSql = open(current_dir + "/hash/HashDB", "wb");
-                fileYara = open(current_dir + "/new.yara", "wb");
-                fileDataset = open(current_dir + "/settings/dataset.ini", "wb");
+            fileMD5 = open(current_dir + "/hash/md5.txt", "wb");
+            fileSha256 = open(current_dir + "/hash/256.txt", "wb");
+            fileSql = open(current_dir + "/hash/HashDB", "wb");
+            fileYara = open(current_dir + "/new.yara", "wb");
+            fileDataset = open(current_dir + "/settings/dataset.ini", "wb");
                 
-                fileMD5.write(contentMd5)
-                fileSha256.write(contentSha256)
-                fileSql.write(contentSql)
-                fileYara.write(contentYara)
-                fileDataset.write(contentDataset)
+            fileMD5.write(contentMd5)
+            fileSha256.write(contentSha256)
+            fileSql.write(contentSql)
+            fileYara.write(contentYara)
+            fileDataset.write(contentDataset)
                 
                 
-                fileMD5.close();
-                fileSha256.close();
-                fileSql.close();
-                fileYara.close();
-                fileDataset.close();
+            fileMD5.close();
+            fileSha256.close();
+            fileSql.close();
+            fileYara.close();
+            fileDataset.close();
                 
-                return True;
-                
+            return True;
+
+
         else:
             console.log(f"[red]Cannot make connection into github. (404)")
             return False;
@@ -201,7 +201,7 @@ def mode(status=None):
 
         __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini")
         LatestVersion__ = __Page.content.decode('utf-8')
-        AppVersion__ = "1.3.1"
+        AppVersion__ = "1.3.2"
     
     except:
         
@@ -273,17 +273,27 @@ def mode(status=None):
     else:
         console.log(f"[green]Module App[white] ok")
         
-    compileHashes();        
-
-    if os.path.isfile(current_dir + "\\new.yara"):
             
-        console.log(f"[green]Module Yara[white] ok")
+
+    if os.path.isfile(current_dir + "\\new.yara") and os.path.isfile(current_dir + "/hash/256.txt") and os.path.isfile(current_dir + "/hash/HashDB") and os.path.isfile(current_dir + "/hash/md5.txt"):
+            
+        console.log(f"[green]Module Dataset.F[white] ok")
         
     else:
-        __missing += 1
-        console.log(f"[red]Module Yara[white] Not found")
+        console.log(f"[red]Module Dataset.F[white] missing")
+        console.log("[bold yellow]Restauring..")
+        __updaterResult__ = updater()
         
+        if __updaterResult__ == True:
+             
             
+            console.log(f"[green]Dataset files restaured sucefully!") 
+        
+        else:
+            console.log(f"[red]Dataset files cannot be restaured. Reinstall the app.")
+            __missing += 1;
+        
+    compileHashes();        
 
     if os.path.isdir(current_dir + "\\res\\SideBar"):
             
