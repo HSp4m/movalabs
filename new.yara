@@ -3,6 +3,703 @@ import "pe"
 import "dotnet"
 import "math"
 
+rule PowerShell_ISESteroids_Obfuscation {
+   meta:
+      description = "Detects PowerShell ISESteroids obfuscation"
+      license = "Detection Rule License 1.1 https://github.com/Neo23x0/signature-base/blob/master/LICENSE"
+      author = "Florian Roth (Nextron Systems)"
+      reference = "https://twitter.com/danielhbohannon/status/877953970437844993"
+      date = "2017-06-23"
+      id = "d686c4de-28fd-5d77-91d4-dde5661b75cd"
+      threat = "HEUR:Trojan.powershellObfuscation.gen"
+   strings:
+      $x1 = "/\\/===\\__" ascii
+      $x2 = "${__/\\/==" ascii
+      $x3 = "Catch { }" fullword ascii
+      $x4 = "\\_/=} ${_" ascii
+   condition:
+      2 of them
+}
+
+rule SUSP_Obfuscted_PowerShell_Code {
+   meta:
+      description = "Detects obfuscated PowerShell Code"
+      date = "2018-12-13"
+      author = "Florian Roth (Nextron Systems)"
+      reference = "https://twitter.com/silv0123/status/1073072691584880640"
+      id = "e2d8fc9e-ce2b-5118-8305-0d5839561d4f"
+      threat = "HEUR:Trojan.powershellObfuscation.gen"
+   strings:
+      $s1 = "').Invoke(" ascii
+      $s2 = "(\"{1}{0}\"" ascii
+      $s3 = "{0}\" -f" ascii
+   condition:
+      #s1 > 11 and #s2 > 10 and #s3 > 10
+}
+
+rule SUSP_PowerShell_Caret_Obfuscation_2 {
+   meta:
+      description = "Detects powershell keyword obfuscated with carets"
+      author = "Florian Roth (Nextron Systems)"
+      reference = "Internal Research"
+      date = "2019-07-20"
+      id = "976e261a-029c-5703-835f-a235c5657471"
+      threat = "HEUR:Trojan.powershellObfuscation.gen"
+   strings:
+      $r1 = /p[\^]?o[\^]?w[\^]?e[\^]?r[\^]?s[\^]?h[\^]?e[\^]?l\^l/ ascii wide nocase fullword
+      $r2 = /p\^o[\^]?w[\^]?e[\^]?r[\^]?s[\^]?h[\^]?e[\^]?l[\^]?l/ ascii wide nocase fullword
+   condition:
+      1 of them
+}
+
+rule SUSP_OBFUSC_PowerShell_True_Jun20_1 {
+   meta:
+      description = "Detects indicators often found in obfuscated PowerShell scripts"
+      author = "Florian Roth (Nextron Systems)"
+      reference = "https://github.com/corneacristian/mimikatz-bypass/"
+      date = "2020-06-27"
+      score = 75
+      id = "e9bb870b-ad72-57d3-beff-2f84a81490eb"
+      threat = "HEUR:Trojan.powershellObfuscation.gen"
+   strings:
+      $ = "${t`rue}" ascii nocase
+      $ = "${tr`ue}" ascii nocase
+      $ = "${tru`e}" ascii nocase
+      $ = "${t`ru`e}" ascii nocase
+      $ = "${tr`u`e}" ascii nocase
+      $ = "${t`r`ue}" ascii nocase
+      $ = "${t`r`u`e}" ascii nocase
+   condition:
+      filesize < 6000KB and 1 of them
+}
+
+rule MalScript_Tricks
+{
+    meta:
+        id = "3xg5wneq3ZntsMg61ltshS"
+        fingerprint = "6c78cbc1250afb36970d87d8ee2fe8409f57c9d34251d6e3908454e6643f92e3"
+        version = "1.0"
+        creation_date = "2020-12-01"
+        first_imported = "2021-12-30"
+        last_modified = "2021-12-30"
+        status = "RELEASED"
+        sharing = "TLP:WHITE"
+        source = "BARTBLAZE"
+        author = "@bartblaze"
+        description = "Identifies tricks often seen in malicious scripts such as moving the window off-screen or resizing it to zero."
+        category = "MALWARE"
+        threat = "HEUR:Trojan.badJoke.windowResizer"
+
+    strings:
+        $s1 = "window.moveTo -" ascii wide nocase
+        $s2 = "window.resizeTo 0" ascii wide nocase
+        $x1 = "window.moveTo(-" ascii wide nocase
+        $x2 = "window.resizeTo(" ascii wide nocase
+
+    condition:
+        ( all of ($s*) or all of ($x*)) and filesize <50KB
+}
+
+private rule isLNK
+{
+    meta:
+        id = "1XKPrHhGUVGxZ9ZtveVhF9"
+        fingerprint = "399c994f697568637efb30910b80f5ae7bedd42bf1cf4188cb74610e46cb23a8"
+        version = "1.0"
+        creation_date = "2020-01-01"
+        first_imported = "2021-12-30"
+        last_modified = "2021-12-30"
+        status = "RELEASED"
+        sharing = "TLP:WHITE"
+        source = "BARTBLAZE"
+        author = "@bartblaze"
+        description = "Private rule identifying shortcut (LNK) files. To be used in conjunction with the other LNK rules below."
+        category = "INFO"
+
+    strings:
+        $lnk = { 4C 00 00 00 01 14 02 00 }
+
+    condition:
+        $lnk at 0
+}
+
+rule SUSP_ZIP_LNK_PhishAttachment_Pattern_Jun22_1 {
+   meta:
+      description = "Detects suspicious tiny ZIP files with phishing attachment characteristics"
+      author = "Florian Roth (Nextron Systems)"
+      reference = "Internal Research"
+      date = "2022-06-23"
+      score = 65
+      hash1 = "4edb41f4645924d8a73e7ac3e3f39f4db73e38f356bc994ad7d03728cd799a48"
+      hash2 = "c4fec375b44efad2d45c49f30133efbf6921ce82dbb2d1a980f69ea6383b0ab4"
+      hash3 = "9c70eeac97374213355ea8fa019a0e99e0e57c8efc43daa3509f9f98fa71c8e4"
+      hash4 = "ddc20266e38a974a28af321ab82eedaaf51168fbcc63ac77883d8be5200dcaf9"
+      hash5 = "b59788ae984d9e70b4f7f5a035b10e6537063f15a010652edd170fc6a7e1ea2f"
+      id = "3537c4ea-a51d-5100-97d7-71a24da5ff43"
+      threat = "HEUR:Trojan.WinLNK.Agent.gen"
+   strings:
+      $sl1 = ".lnk" 
+   condition:
+      uint16(0) == 0x4b50 and 
+      filesize < 2KB and 
+      $sl1 in (filesize-256..filesize)
+}
+
+rule SUSP_ZIP_ISO_PhishAttachment_Pattern_Jun22_1 {
+   meta:
+      description = "Detects suspicious small base64 encoded ZIP files (MIME email attachments) with .iso files as content as often used in phishing attacks"
+      author = "Florian Roth (Nextron Systems)"
+      reference = "Internal Research"
+      date = "2022-06-23"
+      score = 65
+      id = "638541a6-d2d4-513e-978c-9d1b9f5e3b71"
+      threat = "HEUR:Trojan.WinLNK.Agent.gen"
+   strings:
+      $pkzip_base64_1 = { 0A 55 45 73 44 42 }
+      $pkzip_base64_2 = { 0A 55 45 73 44 42 }
+      $pkzip_base64_3 = { 0A 55 45 73 48 43 }
+
+      $iso_1 = "Lmlzb1BL"
+      $iso_2 = "5pc29QS"
+      $iso_3 = "uaXNvUE"
+   condition:
+      filesize < 2000KB and 1 of ($pk*) and 1 of ($iso*)
+}
+
+rule SUSP_Archive_Phishing_Attachment_Characteristics_Jun22_1 {
+   meta:
+      description = "Detects characteristics of suspicious file names or double extensions often found in phishing mail attachments"
+      author = "Florian Roth (Nextron Systems)"
+      reference = "https://twitter.com/0xtoxin/status/1540524891623014400?s=12&t=IQ0OgChk8tAIdTHaPxh0Vg"
+      date = "2022-06-29"
+      score = 65
+      hash1 = "caaa5c5733fca95804fffe70af82ee505a8ca2991e4cc05bc97a022e5f5b331c"
+      hash2 = "a746d8c41609a70ce10bc69d459f9abb42957cc9626f2e83810c1af412cb8729"
+      id = "3cb8c371-f40b-5773-84d1-3bce37da529e"
+      threat = "HEUR:Trojan.WinLNK.Agent.gen"
+   strings:
+      $sa01 = "INVOICE.exePK" ascii
+      $sa02 = "PAYMENT.exePK" ascii
+      $sa03 = "REQUEST.exePK" ascii
+      $sa04 = "ORDER.exePK" ascii
+      $sa05 = "invoice.exePK" ascii
+      $sa06 = "payment.exePK" ascii
+      $sa07 = "_request.exePK" ascii
+      $sa08 = "_order.exePK" ascii
+      $sa09 = "-request.exePK" ascii
+      $sa10 = "-order.exePK" ascii
+      $sa11 = " request.exePK" ascii
+      $sa12 = " order.exePK" ascii
+      $sa14 = ".doc.exePK" ascii
+      $sa15 = ".docx.exePK" ascii
+      $sa16 = ".xls.exePK" ascii
+      $sa17 = ".xlsx.exePK" ascii
+      $sa18 = ".pdf.exePK" ascii
+      $sa19 = ".ppt.exePK" ascii
+      $sa20 = ".pptx.exePK" ascii
+      $sa21 = ".rtf.exePK" ascii
+      $sa22 = ".txt.exePK" ascii
+
+      $sb01 = "SU5WT0lDRS5leGVQS"
+      $sb02 = "lOVk9JQ0UuZXhlUE"
+      $sb03 = "JTlZPSUNFLmV4ZVBL"
+      $sb04 = "UEFZTUVOVC5leGVQS"
+      $sb05 = "BBWU1FTlQuZXhlUE"
+      $sb06 = "QQVlNRU5ULmV4ZVBL"
+      $sb07 = "UkVRVUVTVC5leGVQS"
+      $sb08 = "JFUVVFU1QuZXhlUE"
+      $sb09 = "SRVFVRVNULmV4ZVBL"
+      $sb10 = "T1JERVIuZXhlUE"
+      $sb11 = "9SREVSLmV4ZVBL"
+      $sb12 = "PUkRFUi5leGVQS"
+      $sb13 = "aW52b2ljZS5leGVQS"
+      $sb14 = "ludm9pY2UuZXhlUE"
+      $sb15 = "pbnZvaWNlLmV4ZVBL"
+      $sb16 = "cGF5bWVudC5leGVQS"
+      $sb17 = "BheW1lbnQuZXhlUE"
+      $sb18 = "wYXltZW50LmV4ZVBL"
+      $sb19 = "X3JlcXVlc3QuZXhlUE"
+      $sb20 = "9yZXF1ZXN0LmV4ZVBL"
+      $sb21 = "fcmVxdWVzdC5leGVQS"
+      $sb22 = "X29yZGVyLmV4ZVBL"
+      $sb23 = "9vcmRlci5leGVQS"
+      $sb24 = "fb3JkZXIuZXhlUE"
+      $sb25 = "LXJlcXVlc3QuZXhlUE"
+      $sb26 = "1yZXF1ZXN0LmV4ZVBL"
+      $sb27 = "tcmVxdWVzdC5leGVQS"
+      $sb28 = "LW9yZGVyLmV4ZVBL"
+      $sb29 = "1vcmRlci5leGVQS"
+      $sb30 = "tb3JkZXIuZXhlUE"
+      $sb31 = "IHJlcXVlc3QuZXhlUE"
+      $sb32 = "ByZXF1ZXN0LmV4ZVBL"
+      $sb33 = "gcmVxdWVzdC5leGVQS"
+      $sb34 = "IG9yZGVyLmV4ZVBL"
+      $sb35 = "BvcmRlci5leGVQS"
+      $sb36 = "gb3JkZXIuZXhlUE"
+      $sb37 = "LmRvYy5leGVQS"
+      $sb38 = "5kb2MuZXhlUE"
+      $sb39 = "uZG9jLmV4ZVBL"
+      $sb40 = "LmRvY3guZXhlUE"
+      $sb41 = "5kb2N4LmV4ZVBL"
+      $sb42 = "uZG9jeC5leGVQS"
+      $sb43 = "Lnhscy5leGVQS"
+      $sb44 = "54bHMuZXhlUE"
+      $sb45 = "ueGxzLmV4ZVBL"
+      $sb46 = "Lnhsc3guZXhlUE"
+      $sb47 = "54bHN4LmV4ZVBL"
+      $sb48 = "ueGxzeC5leGVQS"
+      $sb49 = "LnBkZi5leGVQS"
+      $sb50 = "5wZGYuZXhlUE"
+      $sb51 = "ucGRmLmV4ZVBL"
+      $sb52 = "LnBwdC5leGVQS"
+      $sb53 = "5wcHQuZXhlUE"
+      $sb54 = "ucHB0LmV4ZVBL"
+      $sb55 = "LnBwdHguZXhlUE"
+      $sb56 = "5wcHR4LmV4ZVBL"
+      $sb57 = "ucHB0eC5leGVQS"
+      $sb58 = "LnJ0Zi5leGVQS"
+      $sb59 = "5ydGYuZXhlUE"
+      $sb60 = "ucnRmLmV4ZVBL"
+      $sb61 = "LnR4dC5leGVQS"
+      $sb62 = "50eHQuZXhlUE"
+      $sb63 = "udHh0LmV4ZVBL"
+   condition:
+      uint16(0) == 0x4b50 and 1 of ($sa*) or 1 of ($sb*)
+}
+
+rule PS_in_LNK
+{
+    meta:
+        id = "5PjnTrwMNGYdZahLd6yrPa"
+        fingerprint = "d89b0413d59b57e5177261530ed1fb60f0f6078951a928caf11b2db1c2ec5109"
+        version = "1.0"
+        creation_date = "2020-01-01"
+        first_imported = "2021-12-30"
+        last_modified = "2021-12-30"
+        status = "RELEASED"
+        sharing = "TLP:WHITE"
+        source = "BARTBLAZE"
+        author = "@bartblaze"
+        description = "Identifies PowerShell artefacts in shortcut (LNK) files."
+        category = "INFO"
+        threat = "HEUR:Trojan.WinLNK.Agent.gen"
+
+    strings:
+        $ = ".ps1" ascii wide nocase
+        $ = "powershell" ascii wide nocase
+        $ = "invoke" ascii wide nocase
+        $ = "[Convert]" ascii wide nocase
+        $ = "FromBase" ascii wide nocase
+        $ = "-exec" ascii wide nocase
+        $ = "-nop" ascii wide nocase
+        $ = "-noni" ascii wide nocase
+        $ = "-w hidden" ascii wide nocase
+        $ = "-enc" ascii wide nocase
+        $ = "-decode" ascii wide nocase
+        $ = "bypass" ascii wide nocase
+
+    condition:
+        isLNK and any of them
+}
+
+rule Script_in_LNK
+{
+    meta:
+        id = "24OwxeALdNyMpIq2oeeatL"
+        fingerprint = "bed7b00cdd2966629d9492097d357b729212d6d90251b9f1319634af05f40fdc"
+        version = "1.0"
+        creation_date = "2020-01-01"
+        first_imported = "2021-12-30"
+        last_modified = "2021-12-30"
+        status = "RELEASED"
+        sharing = "TLP:WHITE"
+        source = "BARTBLAZE"
+        author = "@bartblaze"
+        description = "Identifies scripting artefacts in shortcut (LNK) files."
+        category = "INFO"
+        threat = "HEUR:Trojan.WinLNK.Agent.gen"
+
+    strings:
+        $ = "javascript" ascii wide nocase
+        $ = "jscript" ascii wide nocase
+        $ = "vbscript" ascii wide nocase
+        $ = "wscript" ascii wide nocase
+        $ = "cscript" ascii wide nocase
+        $ = ".js" ascii wide nocase
+        $ = ".vb" ascii wide nocase
+        $ = ".wsc" ascii wide nocase
+        $ = ".wsh" ascii wide nocase
+        $ = ".wsf" ascii wide nocase
+        $ = ".sct" ascii wide nocase
+        $ = ".cmd" ascii wide nocase
+        $ = ".hta" ascii wide nocase
+        $ = ".bat" ascii wide nocase
+        $ = "ActiveXObject" ascii wide nocase
+        $ = "eval" ascii wide nocase
+
+    condition:
+        isLNK and any of them
+}
+
+rule EXE_in_LNK
+{
+    meta:
+        id = "3SSZmnnXU0l4qoc9wubdhN"
+        fingerprint = "f169fab39da34f827cdff5ee022374f7c1cc0b171da9c2bb718d8fee9657d7a3"
+        version = "1.0"
+        creation_date = "2020-01-01"
+        first_imported = "2021-12-30"
+        last_modified = "2021-12-30"
+        status = "RELEASED"
+        sharing = "TLP:WHITE"
+        source = "BARTBLAZE"
+        author = "@bartblaze"
+        description = "Identifies executable artefacts in shortcut (LNK) files."
+        category = "INFO"
+        threat = "HEUR:Trojan.WinLNK.Agent.gen"
+
+    strings:
+        $ = ".exe" ascii wide nocase
+        $ = ".dll" ascii wide nocase
+        $ = ".scr" ascii wide nocase
+        $ = ".pif" ascii wide nocase
+        $ = "This program" ascii wide nocase
+        $ = "TVqQAA" ascii wide nocase
+
+    condition:
+        isLNK and any of them
+}
+
+rule Archive_in_LNK
+{
+    meta:
+        id = "2ku4ClpAScswD86dAiYijX"
+        fingerprint = "91946edcd14021c70c3dc4e1898b346f671095e87715df73fa4db3a70074b918"
+        version = "1.0"
+        creation_date = "2020-01-01"
+        first_imported = "2021-12-30"
+        last_modified = "2021-12-30"
+        status = "RELEASED"
+        sharing = "TLP:WHITE"
+        source = "BARTBLAZE"
+        author = "@bartblaze"
+        description = "Identifies archive (compressed) files in shortcut (LNK) files."
+        category = "INFO"
+        threat = "HEUR:Trojan.WinLNK.Agent.gen"
+
+    strings:
+        $ = ".7z" ascii wide nocase
+        $ = ".zip" ascii wide nocase
+        $ = ".cab" ascii wide nocase
+        $ = ".iso" ascii wide nocase
+        $ = ".rar" ascii wide nocase
+        $ = ".bz2" ascii wide nocase
+        $ = ".tar" ascii wide nocase
+        $ = ".lzh" ascii wide nocase
+        $ = ".dat" ascii wide nocase
+        $ = "WinRAR\\Rar.exe" ascii wide nocase
+        $ = "expand" ascii wide nocase
+        $ = "makecab" ascii wide nocase
+        $ = "UEsDBA" ascii wide nocase
+        $ = "TVNDRg" ascii wide nocase
+
+    condition:
+        isLNK and any of them
+}
+
+rule Execution_in_LNK
+{
+    meta:
+        id = "77XnooZUMUCCdEuppmQ0My"
+        fingerprint = "cf4910d057f099ef2d2b6fc80739a41e3594c500e6b4eca0fc8f64e48f6dcefb"
+        version = "1.0"
+        creation_date = "2020-01-01"
+        first_imported = "2021-12-30"
+        last_modified = "2021-12-30"
+        status = "RELEASED"
+        sharing = "TLP:WHITE"
+        source = "BARTBLAZE"
+        author = "@bartblaze"
+        description = "Identifies execution artefacts in shortcut (LNK) files."
+        category = "INFO"
+        threat = "HEUR:Trojan.WinLNK.Agent.gen"
+
+    strings:
+        $ = "cmd.exe" ascii wide nocase
+        $ = "/c echo" ascii wide nocase
+        $ = "/c start" ascii wide nocase
+        $ = "/c set" ascii wide nocase
+        $ = "%COMSPEC%" ascii wide nocase
+        $ = "rundll32.exe" ascii wide nocase
+        $ = "regsvr32.exe" ascii wide nocase
+        $ = "Assembly.Load" ascii wide nocase
+        $ = "[Reflection.Assembly]::Load" ascii wide nocase
+        $ = "process call" ascii wide nocase
+
+    condition:
+        isLNK and any of them
+}
+
+rule Compilation_in_LNK
+{
+    meta:
+        id = "6MFIj6PnQMhnF21XItMr42"
+        fingerprint = "58d09c8cd94f0d8616d16195bd7fa0335657dd87235e204d49979785cdd8007e"
+        version = "1.0"
+        creation_date = "2020-01-01"
+        first_imported = "2021-12-30"
+        last_modified = "2021-12-30"
+        status = "RELEASED"
+        sharing = "TLP:WHITE"
+        source = "BARTBLAZE"
+        author = "@bartblaze"
+        description = "Identifies compilation artefacts in shortcut (LNK) files."
+        category = "INFO"
+        threat = "HEUR:Trojan.WinLNK.Agent.gen"
+
+    strings:
+        $ = "vbc.exe" ascii wide nocase
+        $ = "csc.exe" ascii wide nocase
+
+    condition:
+        isLNK and any of them
+}
+
+rule Download_in_LNK
+{
+    meta:
+        id = "4oUWRvBhzXFLJVKxasN6Cd"
+        fingerprint = "9b95b86b48df38523f1e382483c7a7fd96da1a0244b5ebdd2327eaf904afd117"
+        version = "1.0"
+        creation_date = "2020-01-01"
+        first_imported = "2021-12-30"
+        last_modified = "2021-12-30"
+        status = "RELEASED"
+        sharing = "TLP:WHITE"
+        source = "BARTBLAZE"
+        author = "@bartblaze"
+        description = "Identifies download artefacts in shortcut (LNK) files."
+        category = "INFO"
+        threat = "HEUR:Trojan.WinLNK.Agent.gen"
+
+    strings:
+        $ = "bitsadmin" ascii wide nocase
+        $ = "certutil" ascii wide nocase
+        $ = "ServerXMLHTTP" ascii wide nocase
+        $ = "http" ascii wide nocase
+        $ = "ftp" ascii wide nocase
+        $ = ".url" ascii wide nocase
+
+    condition:
+        isLNK and any of them
+}
+
+rule MSOffice_in_LNK
+{
+    meta:
+        id = "5wsZnuCXdcxZ1DbLHFC4pX"
+        fingerprint = "ac2e453ed19a4f30f17a1c7ff4c8dfcd00b2c2fc53c7ab05d32f5e6a91326da1"
+        version = "1.0"
+        creation_date = "2020-01-01"
+        first_imported = "2021-12-30"
+        last_modified = "2021-12-30"
+        status = "RELEASED"
+        sharing = "TLP:WHITE"
+        source = "BARTBLAZE"
+        author = "@bartblaze"
+        description = "Identifies Microsoft Office artefacts in shortcut (LNK) files."
+        category = "INFO"
+        threat = "HEUR:Trojan.WinLNK.Agent.gen"
+
+    strings:
+        $ = "winword" ascii wide nocase
+        $ = "excel" ascii wide nocase
+        $ = "powerpnt" ascii wide nocase
+        $ = ".rtf" ascii wide nocase
+        $ = ".doc" ascii wide nocase
+        $ = ".dot" ascii wide nocase
+        $ = ".xls" ascii wide nocase
+        $ = ".xla" ascii wide nocase
+        $ = ".csv" ascii wide nocase
+        $ = ".ppt" ascii wide nocase
+        $ = ".pps" ascii wide nocase
+        $ = ".xml" ascii wide nocase
+
+    condition:
+        isLNK and any of them
+}
+
+rule PDF_in_LNK
+{
+    meta:
+        id = "7U50CQK54jXHGYojYg4wKe"
+        fingerprint = "5640fd2e7a31adf7f080658f07084d5e7b9dd89d2e58c49ffd7fe50f16bfcaa2"
+        version = "1.0"
+        creation_date = "2020-01-01"
+        first_imported = "2021-12-30"
+        last_modified = "2021-12-30"
+        status = "RELEASED"
+        sharing = "TLP:WHITE"
+        source = "BARTBLAZE"
+        author = "@bartblaze"
+        description = "Identifies Adobe Acrobat artefacts in shortcut (LNK) files."
+        category = "INFO"
+        threat = "HEUR:Trojan.WinLNK.Agent.gen"
+
+    strings:
+        $ = ".pdf" ascii wide nocase
+        $ = "%PDF" ascii wide nocase
+
+    condition:
+        isLNK and any of them
+}
+
+rule Flash_in_LNK
+{
+    meta:
+        id = "2onsBjSNyoLIP4WLOVgS56"
+        fingerprint = "4d47314dce183d422d05f220835a28920f06caf8fa54c62e2427938ca68627f3"
+        version = "1.0"
+        creation_date = "2020-01-01"
+        first_imported = "2021-12-30"
+        last_modified = "2021-12-30"
+        status = "RELEASED"
+        sharing = "TLP:WHITE"
+        source = "BARTBLAZE"
+        author = "@bartblaze"
+        description = "Identifies Adobe Flash artefacts in shortcut (LNK) files."
+        category = "INFO"
+        threat = "HEUR:Trojan.WinLNK.Agent.gen"
+
+    strings:
+        $ = ".swf" ascii wide nocase
+        $ = ".fws" ascii wide nocase
+
+    condition:
+        isLNK and any of them
+}
+
+rule SMB_in_LNK
+{
+    meta:
+        id = "5jhrc6f5nuBGClq72MwVw5"
+        fingerprint = "530336ad2ab3fadb07e5f6517b0ac435a0e0b88a47226e5bbf43b5bcc9a79176"
+        version = "1.0"
+        creation_date = "2020-01-01"
+        first_imported = "2021-12-30"
+        last_modified = "2021-12-30"
+        status = "RELEASED"
+        sharing = "TLP:WHITE"
+        source = "BARTBLAZE"
+        author = "@bartblaze"
+        category = "INFO"
+        threat = "HEUR:Trojan.WinLNK.Agent.gen"
+
+    strings:
+        $ = "\\c$\\" ascii wide nocase
+
+    condition:
+        isLNK and any of them
+}
+
+
+rule Long_RelativePath_LNK
+{
+    meta:
+        id = "2ogEIXl8u2qUbIgxTmruYX"
+        fingerprint = "4b822248bade98d0528ab13549797c225784d7f953fe9c14d178c9d530fb3e55"
+        version = "1.0"
+        creation_date = "2020-01-01"
+        first_imported = "2021-12-30"
+        last_modified = "2021-12-30"
+        status = "RELEASED"
+        sharing = "TLP:WHITE"
+        source = "BARTBLAZE"
+        author = "@bartblaze"
+        description = "Identifies shortcut (LNK) file with a long relative path. Might be used in an attempt to hide the path."
+        category = "INFO"
+        threat = "HEUR:Trojan.WinLNK.Agent.gen"
+
+    strings:
+        $ = "..\\..\\..\\..\\" ascii wide nocase
+
+    condition:
+        isLNK and any of them
+}
+
+rule Large_filesize_LNK
+{
+    meta:
+        id = "2N6jerukOyU2qFFtcMtnWt"
+        fingerprint = "a8168e65294bfc0b9ffca544891b818b37feb5b780ab357efbb56638c6578242"
+        version = "1.0"
+        creation_date = "2020-01-01"
+        first_imported = "2021-12-30"
+        last_modified = "2021-12-30"
+        status = "RELEASED"
+        sharing = "TLP:WHITE"
+        source = "BARTBLAZE"
+        author = "@bartblaze"
+        description = "Identifies shortcut (LNK) file larger than 100KB. Most goodware LNK files are smaller than 100KB."
+        category = "INFO"
+        threat = "HEUR:Trojan.WinLNK.Agent.gen"
+
+    condition:
+        isLNK and filesize >100KB
+}
+
+rule High_Entropy_LNK
+{
+    meta:
+        id = "6Dqf8gBGF21dKt03BJOXbQ"
+        fingerprint = "d0b5bdad04d5894cd1136ec57bd6410180923e9267edb932c8dca6ef3a23722d"
+        version = "1.0"
+        creation_date = "2020-01-01"
+        first_imported = "2021-12-30"
+        last_modified = "2021-12-30"
+        status = "RELEASED"
+        sharing = "TLP:WHITE"
+        source = "BARTBLAZE"
+        author = "@bartblaze"
+        description = "Identifies shortcut (LNK) file with equal or higher entropy than 6.5. Most goodware LNK files have a low entropy, lower than 6."
+        category = "INFO"
+        threat = "HEUR:Trojan.WinLNK.Agent.gen"
+
+    condition:
+        isLNK and math.entropy(0, filesize )>=6.5
+}
+
+rule CDN_in_LNK
+{
+    meta:
+        id = "q22YL1ZnAbHqVNq9Iz1Bn"
+        fingerprint = "81b8267b7286f4baa02c533c7a4f17e17b38859a81cc0186b1b47c89498b6a0e"
+        version = "1.0"
+        creation_date = "2020-03-01"
+        first_imported = "2021-12-30"
+        last_modified = "2021-12-30"
+        status = "RELEASED"
+        sharing = "TLP:WHITE"
+        source = "BARTBLAZE"
+        author = "@bartblaze"
+        description = "Identifies CDN (Content Delivery Network) domain in shortcut (LNK) file."
+        category = "INFO"
+        threat = "HEUR:Trojan.WinLNK.Agent.gen"
+
+    strings:
+        $ = "cdn." ascii wide nocase
+        $ = "githubusercontent" ascii wide nocase
+        $ = "googleusercontent" ascii wide nocase
+        $ = "cloudfront" ascii wide nocase
+        $ = "amazonaws" ascii wide nocase
+        $ = "akamai" ascii wide nocase
+        $ = "cdn77" ascii wide nocase
+        $ = "discordapp" ascii wide nocase
+
+    condition:
+        isLNK and any of them
+}
+
 rule Windows_Ransomware_Sodinokibi_83f05fbe : beta {
     meta:
         author = "Elastic Security"
@@ -1360,7 +2057,7 @@ rule DefenderControl
         category = "MALWARE"
         malware = "DEFENDERCONTROL"
         reference = "https://www.sordum.org/9480/defender-control-v1-8/"
-        threat = "Application.Hacktool.DisableDefender.F"
+        threat = "Hacktool/DefenderDisabler.F"
 
     strings:
         $ = "www.sordum.org" ascii wide
@@ -10346,6 +11043,7 @@ rule MAL_RANSOM_LockBit_Apr23_1_RID2F98 : CRIME DEMO MAL RANSOM {
       
       tags = "CRIME, DEMO, MAL, RANSOM"
       minimum_yara = "3.8.0"
+      threat = "HEUR:Ransom/Lockbit.RID2F98"
       
    strings:
       $xe1 = "-i '/path/to/crypt'" xor
@@ -10371,6 +11069,7 @@ rule MAL_RANSOM_LockBit_Locker_LOG_Apr23_1_RID3398 : CRIME DEMO LOG MAL RANSOM {
       
       tags = "CRIME, DEMO, LOG, MAL, RANSOM"
       minimum_yara = "1.7"
+      threat = "HEUR:Ransom/Lockbit-log.RID3398"
       
    strings:
       $s1 = " is encrypted. Checksum after encryption " 
@@ -69628,7 +70327,7 @@ rule PowerShell_Susp_Parameter_Combo : HIGHVOL FILE {
       date = "2017-03-12"
       modified = "2022-09-15"
       score = 60
-      threat = "HEUR:SuspParams-Powershell"
+      threat = "HEUR:Trojan.powershell-MalInformed-Invocation"
    strings:
       /* Encoded Command */
       $sa1 = " -enc " ascii wide nocase
@@ -70273,7 +70972,7 @@ rule AdwareDownloaderA
 		Description  = "Adware.Downloader.A.vb"
 		ThreatLevel  = "5"
         namespace = "AdwareDownloaderA"
-        threat = "Adware:Downloader.A"
+        threat = "Adware/Downloader.A"
 
 	strings:
 
@@ -70868,11 +71567,35 @@ rule Win32_Ransomware_CryptoLocker : tc_detection malicious
         ($entrypoint_all at pe.entry_point))
 }
 
+rule batchAppStarter {
+   meta:
+      author = "Movalabs"
+      description = "Detect a possible app flooder in a batch file."
+      threat = "HEUR:Trojan.appflooder-batch"
+   
+   strings:
+      $s1 = "start cmd"
+      $s2 = ":"
+      $s3 = "goto"
+      $s4 = "@echo off"
+      $s5 = "start notepad"
+      $s6 = "start explorer"
+      $s7 = "start control"
+      $s8 = "start calc"
+      $s9 = "start cmd"
+      $s10 = "start"
+      
+
+   condition:
+      3 of them
+}
+
 rule potential_PyKeylogger  {
 
     meta:
         author          = "Movalabs"
-        threat          = "HEUR:Generic-PythonKeylogger"
+        threat          = "HEUR:Trojan.pythonKeyboardRegister/Keylogger.gen"
+        description     = "Detect a common keywords used in keyloggers/keyregisters"
 
     strings:
 
@@ -70950,7 +71673,7 @@ rule is__Mirai_gen7 {
                 author = "unixfreaxjp"
                 org = "MalwareMustDie"
                 date = "2018-01-05"
-                threat = "MiraiX:Generic"
+                threat = "Mal/MiraiX.Gen"
                 namespace = "is__Mirai_gen7"
 
         strings:
@@ -70992,7 +71715,7 @@ rule MALW_FakePyPI
         date = "2017-09"
         tlp = "white"
         namespace = "MALW_FakePyPI"
-        threat = "Mal:FakePyPI.Package"
+        threat = "Mal/Fake-PyPIPackage"
 
     strings:	
         $ = "# Welcome Here! :)"
@@ -71271,7 +71994,7 @@ rule INDICATOR_SUSPICIOUS_GENRansomware {
         description = "detects command variations typically used by ransomware"
         author = "ditekSHen"
         namespace = "INDICATOR_SUSPICIOUS_GENRansomware"
-        threat = "HEUR:Generic-FileEncryptor[Ransom]"
+        threat = "HEUR:FileEncryptor/Ransom.gen"
 
 
     strings:
