@@ -7,3 +7,4 @@ processWatcher.py
 settings/settings.ini
 _databaser.py
 test.py
+_hasher.py
