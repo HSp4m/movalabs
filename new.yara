@@ -71567,29 +71567,6 @@ rule Win32_Ransomware_CryptoLocker : tc_detection malicious
         ($entrypoint_all at pe.entry_point))
 }
 
-rule batchAppStarter {
-   meta:
-      author = "Movalabs"
-      description = "Detect a possible app flooder in a batch file."
-      threat = "HEUR:Trojan.appflooder-batch"
-   
-   strings:
-      $s1 = "start cmd"
-      $s2 = ":"
-      $s3 = "goto"
-      $s4 = "@echo off"
-      $s5 = "start notepad"
-      $s6 = "start explorer"
-      $s7 = "start control"
-      $s8 = "start calc"
-      $s9 = "start cmd"
-      $s10 = "start"
-      
-
-   condition:
-      3 of them
-}
-
 rule potential_PyKeylogger  {
 
     meta:
