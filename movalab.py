@@ -106,15 +106,15 @@ def updater(module="dataset"):
 
             if requestApp.status_code:
                 
-                if os.path.isfile(__file__):
+                
                     
-                    contentApp = requestApp.content;
-                    fileApp = open(__file__, "wb");
-                    fileApp.write(contentApp)
-                    fileApp.close();
+                contentApp = requestApp.content;
+                fileApp = open(__file__, "wb");
+                fileApp.write(contentApp)
+                fileApp.close();
 
                     
-                    return True;
+                return True;
                     
             else:
                 console.log(f"[red]Cannot make connection into github. (404)")
@@ -122,6 +122,79 @@ def updater(module="dataset"):
         
         else:
             return False;    
+        
+        
+    elif module == "imgres":
+        try:
+            homeIcon = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/res/SideBar/home-outlinedWHITE.svg").content
+            quarantineIcon = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/res/SideBar/quarantineWHITE.svg").content
+            settingsIcon = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/res/SideBar/settings_oWHITE.svg").content
+            historyIcon = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/res/SideBar/twotone-history.svg").content
+            avIcon = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/res/ico/AntiVirus_ico.ico").content
+            avSIcon = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/res/ico/AntiVirus_ico.svg").content
+            avWhiteIcon = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/res/ico/AntiVirus_icoWhite.svg").content
+            statusErrorIcon = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/res/ico/status-error-128.png").content
+            statusInfoIcon = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/res/ico/status-info-128.png").content
+            statusOkIcon = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/res/ico/status-ok-128.png").content
+            statusWarningIcon = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/res/ico/status-warning-128.png").content
+        
+            homeIFile = open(current_dir + "/res/sidebar/home-outlinedWHITE.svg",'wb')
+            quarantineIFile = open(current_dir + "/res/sidebar/quarantineWHITE.svg",'wb')
+            settingsIFile = open(current_dir + "/res/sidebar/settings_oWHITE.svg",'wb')
+            historyIFile = open(current_dir + "/res/sidebar/twotone-history.svg",'wb')
+            avIFile = open(current_dir + "/res/ico/AntiVirus_ico.ico",'wb')
+            avSIFile = open(current_dir + "/res/ico/AntiVirus_ico.svg",'wb')
+            avWhiteIFile = open(current_dir + "/res/ico/AntiVirus_icoWhite.svg",'wb')
+            statusErrorIFile = open(current_dir + "/res/ico/status-error-128.png",'wb')
+            statusInfoIFile = open(current_dir + "/res/ico/status-info-128.png",'wb')
+            statusOkIFile = open(current_dir + "/res/ico/status-ok-128.png",'wb')
+            statusWarningIFile = open(current_dir + "/res/ico/status-warning-128.png",'wb')
+            
+            
+            homeIFile.write(homeIcon)
+            quarantineIFile.write(quarantineIcon)
+            settingsIFile.write(settingsIcon)
+            historyIFile.write(historyIcon)
+            avIFile.write(avIcon)
+            avSIFile.write(avSIcon)
+            avWhiteIFile.write(avWhiteIcon)
+            statusErrorIFile.write(statusErrorIcon)
+            statusInfoIFile.write(statusInfoIcon)
+            statusOkIFile.write(statusOkIcon)
+            statusWarningIFile.write(statusWarningIcon)
+            
+            
+            homeIFile.close()
+            quarantineIFile.close()
+            settingsIFile.close()
+            historyIFile.close()
+            avIFile.close()
+            avSIFile.close()
+            avWhiteIFile.close()
+            statusErrorIFile.close()
+            statusInfoIFile.close()
+            statusOkIFile.close()
+            statusWarningIFile.close()
+            
+            
+        except requests.ConnectionError as e:
+            console.log(f'[red]No internet connection. [white]{e}')
+            
+    elif module == 'settings':
+        
+        try:
+            
+            settingsIni = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/settings.ini");
+            
+            settingsFile = open(current_dir + '/settings/settings.ini', 'wb')
+            
+            settingsFile.write(settingsIni.content)
+            
+            settingsFile.close()
+            
+        except requests.ConnectionError as e:
+            console.log(f'[red]No internet connection. [white]{e}')
+        
     
 def compileHashes():
     global DatasetVersion__;
@@ -129,6 +202,14 @@ def compileHashes():
     global sha256List;
     global rules;
     global db_cursor;
+    global automaticUpdates;
+    global scanHistory;
+    global style;
+    global virustotal;
+    global vrapikey;
+    global metadefenderkey;
+    global metadefender;
+    
     
     try:
         
@@ -179,41 +260,12 @@ def compileHashes():
         exit();
 
     DatasetVersion__ = getDatasetVersion()
-  
-def mode(status=None):
-    global automaticUpdates;
-    global scanHistory;
-    global style;
-    global virustotal;
-    global vrapikey;
-    global metadefenderkey;
-    global metadefender;
-    global LatestVersion__;
-    global AppVersion__;
-    
-    timeInitial__ = time();
-    __NaN = 0
-    __missing = 0
-    
-    
-        
-    try:
 
-        __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini")
-        LatestVersion__ = __Page.content.decode('utf-8')
-        AppVersion__ = "1.3.3"
-    
-    except:
-        
-        console.log(f"[red]Fetch version[white] Returned a unexpected error. Check internet connection and try again.")
-        exit()
-    
     try:
         
         config.read(settings_path)
 
         
-
         automaticUpdates = config["-settings-"]["automatic_update"]
         scanHistory = config["-settings-"]["scan_history"]
         style = config["-settings-"]["style"]
@@ -228,6 +280,28 @@ def mode(status=None):
         sleep(1)
         
         exit();
+    
+def mode(status=None):
+    global LatestVersion__;
+    global AppVersion__;
+    
+    timeInitial__ = time();
+    __NaN = 0
+    __missing = 0
+    
+    
+        
+    try:
+
+        __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini")
+        LatestVersion__ = __Page.content.decode('utf-8')
+        AppVersion__ = "1.3.4"
+    
+    except:
+        
+        console.log(f"[red]Fetch version[white] Returned a unexpected error. Check internet connection and try again.")
+        exit()
+
        
     
     __updaterResult = update()
@@ -266,7 +340,7 @@ def mode(status=None):
         if __updaterResult__ == True:
             
             console.log(f"[bold green]Update completed sucefully! [A restart is needed.]") 
-        
+            __missing +=1;
         else:
             console.log(f"[red]Update cannot be completed.")
 
@@ -293,36 +367,37 @@ def mode(status=None):
             console.log(f"[red]Dataset files cannot be restaured. Reinstall the app.")
             __missing += 1;
         
-    compileHashes();        
-
-    if os.path.isdir(current_dir + "\\res\\SideBar"):
-            
-        console.log(f"[green]Module Sidebar[white] ok")
+    if os.path.isfile(current_dir + '/res/sidebar/home-outlinedWhite.svg') and os.path.isfile(current_dir + '/res/sidebar/quarantineWHITE.svg') and os.path.isfile(current_dir + '/res/sidebar/settings_oWHITE.svg') and os.path.isfile(current_dir + '/res/sidebar/twotone-history.svg') and os.path.isfile(current_dir + '/res/ico/AntiVirus_ico.ico') and os.path.isfile(current_dir + '/res/ico/AntiVirus_ico.svg') and os.path.isfile(current_dir + '/res/ico/AntiVirus_icoWhite.svg') and os.path.isfile(current_dir + '/res/ico/status-error-128.png') and os.path.isfile(current_dir + '/res/ico/status-info-128.png') and os.path.isfile(current_dir + '/res/ico/status-ok-128.png') and os.path.isfile(current_dir + '/res/ico/status-warning-128.png'):
+        console.log(f"[green]Module UI icons[white] ok")
         
             
-        if os.path.isfile(current_dir + "\\res\\SideBar\\home-outlinedWHITE.svg") and os.path.isfile(current_dir + "\\res\\SideBar\\settings_oWHITE.svg") and os.path.isfile(current_dir + "\\res\\SideBar\\quarantineWHITE.svg"):
-            console.log(f"[green]Module Sidebar.E[white] ok")
-            
-            
-        else:
-            console.log(f"[red]Module Sidebar.E[white] Not found/Missing files")
-            
-            __missing += 1
-            
     else:
-        __missing += 1
-        console.log(f"[red]Module Sidebar[white] Not found")
+        console.log(f"[red]Module UI icons[white] Not found/Missing files")
+        console.log('[yellow]Restauring...')
+        
+        updater('imgres')
+        
+        console.log('[blue]A restart is need.')
+        __missing+=1
         
            
     if os.path.isfile(settings_path):
         console.log(f"[green]Module Settings[white] ok")
         
         
-        
     else:
+        
+        console.log(f"[red]Module Settings[white] Not found")
+        console.log(f'[yellow]Restauring...')
+        
+        updater('settings')
+        
+        console.log('[blue]A restart is need.')
         __missing += 1
-        console.log(f"[red]Module Settings[white] Not found (CRITICAL)")
     
+    
+    
+    compileHashes();
     
         
     
@@ -478,6 +553,8 @@ def quickScan(folders, self):
                                         threat = match.meta.get('malware_family', "?")
                                         if threat == "?":
                                             threat = "Mal/Trojan.Gen"
+                                    
+                                    threat = "HEUR:" + threat.replace('HEUR:','')
                                             
                                     console.log(f"[red]'{file_name}'[white] is infected with [red]'{threat}'")          
                                     self.resultWidget.insertItem(0,f"{file} ({threat})")
@@ -723,7 +800,7 @@ def list_files(dir, self, tray):
                                         if threat == "?":
                                             threat = "Mal/Trojan.Gen"
 
-
+                                    threat = "HEUR:" + threat.replace('HEUR:','')
 
                                             
                                     historyFilesDetected.append(file_name)
@@ -1321,6 +1398,8 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                         if threat == "?": 
                                             threat = "Mal/Trojan.Gen"
                                             
+                                    threat = "HEUR:" + threat.replace('HEUR:','')
+                                    
                                     console.log(F"[red]'{filename}'[white] is infected with [red]'{threat}'")
                                     scan_end(self, 1, f"File scan: {filepath}")
                                     notify(filepath,"status-warning-128.png",f"Type: {threat} \nDetection: Yara rules","Malware Detected")
