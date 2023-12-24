@@ -2,7 +2,6 @@ import "hash"
 import "pe"
 import "dotnet"
 import "math"
-MINER_monero_mining_detection
 
 rule INDICATOR_DOC_PhishingPatterns {
     meta:
