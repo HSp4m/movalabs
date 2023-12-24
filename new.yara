@@ -3,6 +3,347 @@ import "pe"
 import "dotnet"
 import "math"
 
+
+rule INDICATOR_DOC_PhishingPatterns {
+    meta:
+        author = "ditekSHen"
+        description = "Detects OLE, RTF, PDF and OOXML (decompressed) documents with common phishing strings"
+        threat = "HEUR:PhishingDocument.gen"
+    strings:
+        $s1 = "PERFORM THE FOLLOWING STEPS TO PERFORM DECRYPTION" ascii nocase
+        $s2 = "Enable Editing" ascii nocase
+        $s3 = "Enable Content" ascii nocase
+        $s4 = "WHY I CANNOT OPEN THIS DOCUMENT?" ascii nocase
+        $s5 = "You are using iOS or Android, please use Desktop PC" ascii nocase
+        $s6 = "You are trying to view this document using Online Viewer" ascii nocase
+        $s7 = "This document was edited in a different version of" ascii nocase
+        $s8 = "document are locked and will not" ascii nocase
+        $s9 = "until the \"Enable\" button is pressed" ascii nocase
+        $s10 = "This document created in online version of Microsoft Office" ascii nocase
+        $s11 = "This document created in previous version of Microsoft Office" ascii nocase
+        $s12 = "This document protected by Microsoft Office" ascii nocase
+        $s13 = "This document encrypted by" ascii nocase
+        $s14 = "document created in earlier version of microsoft office" ascii nocase
+    condition:
+        (uint16(0) == 0xcfd0 or uint32(0) == 0x74725c7b or uint32(0) == 0x46445025 or uint32(0) == 0x6d783f3c) and 2 of them
+}
+
+rule MacOS_Cryptominer_Generic_d3f68e29 {
+    meta:
+        author = "Elastic Security"
+        id = "d3f68e29-830d-4d40-a285-ac29aed732fa"
+        fingerprint = "733dadf5a09f4972629f331682fca167ebf9a438004cb686d032f69e32971bd4"
+        creation_date = "2021-09-30"
+        last_modified = "2021-10-25"
+        threat_name = "MacOS.Cryptominer.Generic"
+        reference_sample = "d9c78c822dfd29a1d9b1909bf95cab2a9550903e8f5f178edeb7a5a80129fbdb"
+        severity = 100
+        arch_context = "x86"
+        scan_context = "file, memory"
+        license = "Elastic License v2"
+        os = "macos"
+        threat = "not-a-virus:HEUR:RiskTool.macOS.BitCoinMiner"
+
+    strings:
+        $a1 = "command line argument. See 'ethminer -H misc' for details." ascii fullword
+        $a2 = "Ethminer - GPU ethash miner" ascii fullword
+        $a3 = "StratumClient"
+    condition:
+        all of them
+}
+
+rule MacOS_Cryptominer_Generic_333129b7 {
+    meta:
+        author = "Elastic Security"
+        id = "333129b7-8137-4641-bd86-ebcf62257d7b"
+        fingerprint = "baa9e777683d31c27170239752f162799a511bf40269a06a2eab8971fabb098a"
+        creation_date = "2021-09-30"
+        last_modified = "2021-10-25"
+        threat_name = "MacOS.Cryptominer.Generic"
+        reference_sample = "bf47d27351d6b0be0ffe1d6844e87fe8f4f4d33ea17b85c11907266d36e4b827"
+        severity = 100
+        arch_context = "x86"
+        scan_context = "file, memory"
+        license = "Elastic License v2"
+        os = "macos"
+        threat = "not-a-virus:HEUR:RiskTool.macOS.BitCoinMiner"
+
+    strings:
+        $a = { 6D BF 81 55 D4 4C D4 19 4C 81 18 24 3C 14 3C 30 14 18 26 79 5F 35 5F 4C 35 26 }
+    condition:
+        all of them
+}
+
+rule MacOS_Cryptominer_Generic_365ecbb9 {
+    meta:
+        author = "Elastic Security"
+        id = "365ecbb9-586e-4962-a5a8-05e871f54eff"
+        fingerprint = "5ff82ab60f8d028c9e4d3dd95609f92cfec5f465c721d96947b490691d325484"
+        creation_date = "2021-09-30"
+        last_modified = "2021-10-25"
+        threat_name = "MacOS.Cryptominer.Generic"
+        reference_sample = "e2562251058123f86c52437e82ea9ff32aae5f5227183638bc8aa2bc1b4fd9cf"
+        severity = 100
+        arch_context = "x86"
+        scan_context = "file, memory"
+        license = "Elastic License v2"
+        os = "macos"
+        threat = "not-a-virus:HEUR:RiskTool.macOS.BitCoinMiner"
+
+
+    strings:
+        $a = { 55 6E 6B 6E 6F 77 6E 20 6E 65 74 77 6F 72 6B 20 73 70 65 63 69 66 69 65 64 20 }
+    condition:
+        all of them
+}
+
+rule MacOS_Cryptominer_Generic_4e7d4488 {
+    meta:
+        author = "Elastic Security"
+        id = "4e7d4488-2e0c-4c74-84f9-00da103e162a"
+        fingerprint = "4e7f22e8084734aeded9b1202c30e6a170a6a38f2e486098b4027e239ffed2f6"
+        creation_date = "2021-09-30"
+        last_modified = "2021-10-25"
+        threat_name = "MacOS.Cryptominer.Generic"
+        reference_sample = "e2562251058123f86c52437e82ea9ff32aae5f5227183638bc8aa2bc1b4fd9cf"
+        severity = 100
+        arch_context = "x86"
+        scan_context = "file, memory"
+        license = "Elastic License v2"
+        os = "macos"
+        threat = "not-a-virus:HEUR:RiskTool.macOS.BitCoinMiner"
+   
+
+    strings:
+        $a = { 69 73 20 66 69 65 6C 64 20 74 6F 20 73 68 6F 77 20 6E 75 6D 62 65 72 20 6F 66 }
+    condition:
+        all of them
+}
+
+
+rule CoinMiner_Strings : SCRIPT HIGHVOL {
+   meta:
+      description = "Detects mining pool protocol string in Executable"
+      author = "Florian Roth (Nextron Systems)"
+      score = 60
+      reference = "https://minergate.com/faq/what-pool-address"
+      date = "2018-01-04"
+      modified = "2021-10-26"
+      nodeepdive = 1
+      id = "ac045f83-5f32-57a9-8011-99a2658a0e05"
+      threat = "not-a-virus:HEUR:RiskTool.Win32.BitCoinMiner"
+   
+   strings:
+      $sa1 = "stratum+tcp://" ascii
+      $sa2 = "stratum+udp://" ascii
+      $sb1 = "\"normalHashing\": true,"
+   condition:
+      filesize < 3000KB and 1 of them
+}
+
+rule CoinHive_Javascript_MoneroMiner : HIGHVOL {
+   meta:
+      description = "Detects CoinHive - JavaScript Crypto Miner"
+      license = "Detection Rule License 1.1 https://github.com/Neo23x0/signature-base/blob/master/LICENSE"
+      author = "Florian Roth (Nextron Systems)"
+      score = 50
+      reference = "https://coinhive.com/documentation/miner"
+      date = "2018-01-04"
+      id = "4f40c342-fcdc-5c73-a3cf-7b2ed438eaaf"
+      threat = "not-a-virus:HEUR:RiskTool.Win32.BitCoinMiner"
+   
+   strings:
+      $s2 = "CoinHive.CONFIG.REQUIRES_AUTH" fullword ascii
+   condition:
+      filesize < 65KB and 1 of them
+}
+
+rule PUA_CryptoMiner_Jan19_1 {
+   meta:
+      description = "Detects Crypto Miner strings"
+      author = "Florian Roth (Nextron Systems)"
+      reference = "Internal Research"
+      date = "2019-01-31"
+      score = 80
+      hash1 = "ede858683267c61e710e367993f5e589fcb4b4b57b09d023a67ea63084c54a05"
+      id = "aebfdce9-c2dd-5f24-aa25-071e1a961239"
+      threat = "not-a-virus:HEUR:RiskTool.Win32.BitCoinMiner"
+   
+   strings:
+      $s1 = "Stratum notify: invalid Merkle branch" fullword ascii
+      $s2 = "-t, --threads=N       number of miner threads (default: number of processors)" fullword ascii
+      $s3 = "User-Agent: cpuminer/" ascii
+      $s4 = "hash > target (false positive)" fullword ascii
+      $s5 = "thread %d: %lu hashes, %s khash/s" fullword ascii
+   condition:
+      filesize < 1000KB and 1 of them
+}
+
+rule PUA_Crypto_Mining_CommandLine_Indicators_Oct21 : SCRIPT {
+   meta:
+      description = "Detects command line parameters often used by crypto mining software"
+      author = "Florian Roth (Nextron Systems)"
+      reference = "https://www.poolwatch.io/coin/monero"
+      date = "2021-10-24"
+      score = 65
+      id = "afe5a63a-08c3-5cb7-b4b1-b996068124b7"
+      threat = "not-a-virus:HEUR:RiskTool.Win32.BitCoinMiner"
+   
+   strings:
+      $s01 = " --cpu-priority="
+      $s02 = "--donate-level=0"
+      $s03 = " -o pool."
+      $s04 = " -o stratum+tcp://"
+      $s05 = " --nicehash"
+      $s06 = " --algo=rx/0 "
+
+      /* base64 encoded: --donate-level= */
+      $se1 = "LS1kb25hdGUtbGV2ZWw9"
+      $se2 = "0tZG9uYXRlLWxldmVsP"
+      $se3 = "tLWRvbmF0ZS1sZXZlbD"
+
+      /* 
+         base64 encoded:
+         stratum+tcp:// 
+         stratum+udp:// 
+      */
+      $se4 = "c3RyYXR1bSt0Y3A6Ly"
+      $se5 = "N0cmF0dW0rdGNwOi8v"
+      $se6 = "zdHJhdHVtK3RjcDovL"
+      $se7 = "c3RyYXR1bSt1ZHA6Ly"
+      $se8 = "N0cmF0dW0rdWRwOi8v"
+      $se9 = "zdHJhdHVtK3VkcDovL"
+   condition:
+      filesize < 5000KB and 1 of them
+}
+
+rule XMRIG_Monero_Miner : HIGHVOL {
+   meta:
+      description = "Detects Monero mining software"
+      license = "Detection Rule License 1.1 https://github.com/Neo23x0/signature-base/blob/master/LICENSE"
+      author = "Florian Roth (Nextron Systems)"
+      reference = "https://github.com/xmrig/xmrig/releases"
+      date = "2018-01-04"
+      modified = "2022-11-10"
+      modified = "2022-11-10"
+      hash1 = "5c13a274adb9590249546495446bb6be5f2a08f9dcd2fc8a2049d9dc471135c0"
+      hash2 = "08b55f9b7dafc53dfc43f7f70cdd7048d231767745b76dc4474370fb323d7ae7"
+      hash3 = "f3f2703a7959183b010d808521b531559650f6f347a5830e47f8e3831b10bad5"
+      hash4 = "0972ea3a41655968f063c91a6dbd31788b20e64ff272b27961d12c681e40b2d2"
+      id = "71bf1b9c-c806-5737-83a9-d6013872b11d"
+      threat = "not-a-virus:HEUR:RiskTool.Win32.BitCoinMiner"
+
+   strings:
+      $s1 = "'h' hashrate, 'p' pause, 'r' resume" fullword ascii
+      $s2 = "--cpu-affinity" ascii
+      $s3 = "set process affinity to CPU core(s), mask 0x3 for cores 0 and 1" ascii
+      $s4 = "password for mining server" fullword ascii
+      $s5 = "XMRig/%s libuv/%s%s" fullword ascii
+   condition:
+      ( uint16(0) == 0x5a4d or uint16(0) == 0x457f ) and filesize < 10MB and 2 of them
+}
+
+rule XMRIG_Monero_Miner_Config {
+   meta:
+      description = "Auto-generated rule - from files config.json, config.json"
+      license = "Detection Rule License 1.1 https://github.com/Neo23x0/signature-base/blob/master/LICENSE"
+      author = "Florian Roth (Nextron Systems)"
+      reference = "https://github.com/xmrig/xmrig/releases"
+      date = "2018-01-04"
+      hash1 = "031333d44a3a917f9654d7e7257e00c9d961ada3bee707de94b7c7d06234909a"
+      hash2 = "409b6ec82c3bdac724dae702e20cb7f80ca1e79efa4ff91212960525af016c41"
+      id = "374efe7f-9ef2-5974-8e24-f749183ab2d0"
+      threat = "not-a-virus:HEUR:RiskTool.Win32.BitCoinMinerConfig"
+
+   strings:
+      $s2 = "\"cpu-affinity\": null,   // set process affinity to CPU core(s), mask \"0x3\" for cores 0 and 1" fullword ascii
+      $s5 = "\"nicehash\": false                  // enable nicehash/xmrig-proxy support" fullword ascii
+      $s8 = "\"algo\": \"cryptonight\",  // cryptonight (default) or cryptonight-lite" fullword ascii
+   condition:
+      ( uint16(0) == 0x0a7b or uint16(0) == 0x0d7b ) and filesize < 5KB and 1 of them
+}
+
+rule PUA_LNX_XMRIG_CryptoMiner {
+   meta:
+      description = "Detects XMRIG CryptoMiner software"
+      license = "Detection Rule License 1.1 https://github.com/Neo23x0/signature-base/blob/master/LICENSE"
+      author = "Florian Roth (Nextron Systems)"
+      reference = "Internal Research"
+      date = "2018-06-28"
+      modified = "2023-01-06"
+      hash1 = "10a72f9882fc0ca141e39277222a8d33aab7f7a4b524c109506a407cd10d738c"
+      id = "bbdeff2e-68cc-5bbe-b843-3cba9c8c7ea8"
+      threat = "not-a-virus:HEUR:RiskTool.Win32.BitCoinMiner"
+   strings:
+      $x1 = "number of hash blocks to process at a time (don't set or 0 enables automatic selection o" fullword ascii
+      $s2 = "'h' hashrate, 'p' pause, 'r' resume, 'q' shutdown" fullword ascii
+      $s3 = "* THREADS:      %d, %s, aes=%d, hf=%zu, %sdonate=%d%%" fullword ascii
+      $s4 = ".nicehash.com" ascii
+   condition:
+      uint16(0) == 0x457f and filesize < 8000KB and ( 1 of ($x*) or 2 of them )
+}
+
+rule SUSP_XMRIG_String {
+   meta:
+      description = "Detects a suspicious XMRIG crypto miner executable string in filr"
+      author = "Florian Roth (Nextron Systems)"
+      reference = "Internal Research"
+      date = "2018-12-28"
+      hash1 = "eb18ae69f1511eeb4ed9d4d7bcdf3391a06768f384e94427f4fc3bd21b383127"
+      id = "8c6f3e6e-df2a-51b7-81b8-21cd33b3c603"
+      threat = "not-a-virus:HEUR:RiskTool.Win32.suspBitCoinMiner"
+   strings:
+      $x1 = "xmrig.exe" fullword ascii
+   condition:
+      uint16(0) == 0x5a4d and filesize < 2000KB and 1 of them
+}
+
+rule MINER_monero_mining_detection {
+
+   meta:
+
+      description = "Monero mining software"
+      author = "Trellix ATR team"
+      date = "2018-04-05"
+      rule_version = "v1"
+      malware_type = "miner"
+      malware_family = "Ransom:W32/MoneroMiner"
+      actor_type = "Cybercrime"
+      actor_group = "Unknown"
+      threat = "not-a-virus:HEUR:RiskTool.Win32.BitCoinMiner"   
+      
+   strings:
+
+      $1 = "* COMMANDS:     'h' hashrate, 'p' pause, 'r' resume" fullword ascii
+      $2 = "--cpu-affinity       set process affinity to CPU core(s), mask 0x3 for cores 0 and 1" fullword ascii
+      $3 = "* THREADS:      %d, %s, av=%d, %sdonate=%d%%%s" fullword ascii
+      $4 = "--user-agent         set custom user-agent string for pool" fullword ascii
+      $5 = "-O, --userpass=U:P       username:password pair for mining server" fullword ascii
+      $6 = "--cpu-priority       set process priority (0 idle, 2 normal to 5 highest)" fullword ascii
+      $7 = "-p, --pass=PASSWORD      password for mining server" fullword ascii
+      $8 = "* VERSIONS:     XMRig/%s libuv/%s%s" fullword ascii
+      $9 = "-k, --keepalive          send keepalived for prevent timeout (need pool support)" fullword ascii
+      $10 = "--max-cpu-usage=N    maximum CPU usage for automatic threads mode (default 75)" fullword ascii
+      $11 = "--nicehash           enable nicehash/xmrig-proxy support" fullword ascii
+      $12 = "<!--The ID below indicates application support for Windows 10 -->" fullword ascii
+      $13 = "* CPU:          %s (%d) %sx64 %sAES-NI" fullword ascii
+      $14 = "-r, --retries=N          number of times to retry before switch to backup server (default: 5)" fullword ascii
+      $15 = "-B, --background         run the miner in the background" fullword ascii
+      $16 = "* API PORT:     %d" fullword ascii
+      $17 = "--api-access-token=T access token for API" fullword ascii
+      $18 = "-t, --threads=N          number of miner threads" fullword ascii
+      $19 = "--print-time=N       print hashrate report every N seconds" fullword ascii
+      $20 = "-u, --user=USERNAME      username for mining server" fullword ascii
+   
+   condition:
+   
+      ( uint16(0) == 0x5a4d and
+      filesize < 4000KB and
+      ( 8 of them )) or
+      ( all of them )
+}
+
+
 rule PowerShell_ISESteroids_Obfuscation {
    meta:
       description = "Detects PowerShell ISESteroids obfuscation"
