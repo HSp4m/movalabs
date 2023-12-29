@@ -295,7 +295,7 @@ def mode(status=None):
 
         __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini")
         LatestVersion__ = __Page.content.decode('utf-8')
-        AppVersion__ = "1.3.4"
+        AppVersion__ = "1.3.5"
     
     except:
         
@@ -552,9 +552,14 @@ def quickScan(folders, self):
                                     if threat == "?":
                                         threat = match.meta.get('malware_family', "?")
                                         if threat == "?":
-                                            threat = "Mal/Trojan.Gen"
+                                            threat = "Win.unknowMalware!UDS.GEN"
+                                            
+                                    if threat.split(':')[0] == 'not-a-virus':
+                                        threat = threat.replace('HEUR:','')
+                                        threat = threat.split(':')[0] + ':HEUR:' + threat.replace('not-a-virus:','')
+                                    else:
+                                        threat = "HEUR:" + threat.replace('HEUR:','')
                                     
-                                    threat = "HEUR:" + threat.replace('HEUR:','')
                                             
                                     console.log(f"[red]'{file_name}'[white] is infected with [red]'{threat}'")          
                                     self.resultWidget.insertItem(0,f"{file} ({threat})")
@@ -798,9 +803,13 @@ def list_files(dir, self, tray):
                                     if threat == "?":
                                         threat = match.meta.get('malware_family', "?")
                                         if threat == "?":
-                                            threat = "Mal/Trojan.Gen"
+                                            threat = "Win.unknowMalware!UDS.GEN"
 
-                                    threat = "HEUR:" + threat.replace('HEUR:','')
+                                    if threat.split(':')[0] == 'not-a-virus':
+                                        threat = threat.replace('HEUR:','')
+                                        threat = threat.split(':')[0] + ':HEUR:' + threat.replace('not-a-virus:','')
+                                    else:
+                                        threat = "HEUR:" + threat.replace('HEUR:','')
 
                                             
                                     historyFilesDetected.append(file_name)
@@ -1126,23 +1135,23 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
         self.line.setIndent(-1)
         self.line.setObjectName("line")
         self.VirusTotalWidget = QtWidgets.QWidget(self.VirusScanResults_hidden)
-        self.VirusTotalWidget.setGeometry(QtCore.QRect(5, 190, 101, 31))
+        self.VirusTotalWidget.setGeometry(QtCore.QRect(5, 160, 190, 50))
         self.VirusTotalWidget.setObjectName("VirusTotalWidget")
         self.label_3 = QtWidgets.QLabel(self.VirusTotalWidget)
-        self.label_3.setGeometry(QtCore.QRect(10, 9, 161, 21))
+        self.label_3.setGeometry(QtCore.QRect(5, 4, 161, 21))
         font = QtGui.QFont()
         font.setPointSize(9)
         self.label_3.setFont(font)
         self.label_3.setAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignTop)
         self.label_3.setObjectName("label_3")
         self.DetectionsText = QtWidgets.QLabel(self.VirusTotalWidget)
-        self.DetectionsText.setGeometry(QtCore.QRect(10, 20, 161, 31))
+        self.DetectionsText.setGeometry(QtCore.QRect(54, 25, 161, 31))
         font = QtGui.QFont()
         font.setPointSize(9)
         font.setBold(True)
         font.setWeight(75)
         self.DetectionsText.setFont(font)
-        self.DetectionsText.setAlignment(QtCore.Qt.AlignCenter)
+        #self.DetectionsText.setAlignment(QtCore.Qt.AlignCenter)
         self.DetectionsText.setObjectName("DetectionsText")
         self.label_5 = QtWidgets.QLabel(self.VirusTotalWidget)
         self.label_5.setGeometry(QtCore.QRect(10, 47, 161, 16))
@@ -1396,9 +1405,13 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                         threat = match.meta.get('malware_family', "?")
                                         
                                         if threat == "?": 
-                                            threat = "Mal/Trojan.Gen"
+                                            threat = "Win.unknowMalware!UDS.GEN"
                                             
-                                    threat = "HEUR:" + threat.replace('HEUR:','')
+                                    if threat.split(':')[0] == 'not-a-virus':
+                                        threat = threat.replace('HEUR:','')
+                                        threat = threat.split(':')[0] + ':HEUR:' + threat.replace('not-a-virus:','')
+                                    else:
+                                        threat = "HEUR:" + threat.replace('HEUR:','')
                                     
                                     console.log(F"[red]'{filename}'[white] is infected with [red]'{threat}'")
                                     scan_end(self, 1, f"File scan: {filepath}")
@@ -1454,56 +1467,50 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                         
                                         
                                         files = {"file": (os.path.basename(filepath), open(os.path.abspath(filepath), "rb"))}
+                                        
                                         vtotal = Virustotal(API_KEY=vrapikey)
                                         resp = vtotal.request("files", files=files, method="POST")
                                         id = resp.data["id"]
                                         headers = {"x-apikey": vrapikey}
                                         analysis = requests.get(f"https://www.virustotal.com/api/v3/analyses/{id}", headers=headers)
                                         analysis_json = analysis.json()
+                                        
                                         detections = analysis_json["data"]["attributes"]["stats"]["malicious"]
                                         not_detections = analysis_json["data"]["attributes"]["stats"]["undetected"]
                                         
-                                        
-                                        if not_detections == 0:
-                                            self.DetectionsText.setStyleSheet("color: red")
-                                            self.DetectionsText.setText(f"{str(detections)} INVALID | {str(not_detections)}")
-                                            found = False;
-                                        if detections > 10:
-                                            console.log(F"[red]'{filename}'[white] is infected with [red]'Mal/Trojan.Gen'")
+                                        for _av in analysis_json["data"]["attributes"]["results"]:
+                                            _result = analysis_json["data"]["attributes"]["results"][_av]["result"]
                                             
-                                            scan_end(self, 1, f"File scan: {filepath}")
-                                            notify(filepath,"status-warning-128.png",f"Detection type: VirusTotal","Malware Detected")
-                                            self.FilePath.setText("Detection Type:  Virustotal")
-                                            self.DetectionsText.setStyleSheet("color: red")
-                                            self.DetectionsText.setText(f"{str(detections)} | {str(not_detections)}")
-                                            found = True
+                                            if _result in ["null", None]:
+                                                continue
+                                            
+                                            else:
+                                                threat = _result
+                                                engine = _av
+                                                break;
+                                        console.log(f"[blue]d: {detections} | n: {not_detections}")
+                                        if not_detections == 0:
+                                            self.DetectionsText.setStyleSheet("color: white")
+                                            self.DetectionsText.setText(f"ERROR")
+                                            found = False;
                                             
                                         elif detections > 4:
                                             scan_end(self, 1, f"File scan: {filepath}")
-                                            console.log(F"[red]'{filename}'[white] is infected with [red]'Mal/Trojan.Gen'")
+                                            console.log(F"[red]'{filename}'[white] is infected with [red]'{threat}'")
                                             
-                                            notify(filepath,"status-warning-128.png",f"Detection type: VirusTotal","Malware Detected")
-                                            self.FilePath.setText("Detection Type:  Virustotal")
-                                            self.DetectionsText.setStyleSheet("color: yellow")
-                                            self.DetectionsText.setText(f"{str(detections)} | {str(not_detections)}")
-                                            found = True;
-                                            
-                                        elif detections > not_detections:
-                                            scan_end(self, 1, f"File scan: {filepath}")
-                                            console.log(F"[red]'{filename}'[white] is infected with [red]'Mal/Trojan.Gen'")
-                                            
-                                            notify(filepath,"status-warning-128.png",f"Detection type: VirusTotal","Malware Detected")
-                                            self.FilePath.setText("Detection Type:  Virustotal")
+                                            notify(filepath,"status-warning-128.png",f"Type: {threat}\nDetection: VirusTotal \nEngine: {engine}","Malware Detected")
+                                            self.FilePath.setText(f"Engine: {engine} ({threat})")
                                             self.DetectionsText.setStyleSheet("color: red")
                                             self.DetectionsText.setText(f"{str(detections)} | {str(not_detections)}")
                                             found = True;
+
                                         else:
                                             
                                             found = False;
                                             self.DetectionsText.setStyleSheet("color: white")
                                             
                                             self.DetectionsText.setText(f"{str(detections)} | {str(not_detections)}")
-                                        console.log(f"[?] Scan end")
+                                        console.log(f"[blue]Scan end")
                                     else:
                                         msg = QtWidgets.QMessageBox() 
                                         msg.setIcon(QtWidgets.QMessageBox.Critical) 
