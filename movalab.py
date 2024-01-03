@@ -306,7 +306,7 @@ def mode(status=None):
 
         __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini")
         LatestVersion__ = __Page.content.decode('utf-8')
-        AppVersion__ = "1.3.9"
+        AppVersion__ = "1.3.9b"
     
     except:
         
