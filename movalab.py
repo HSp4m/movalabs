@@ -295,7 +295,7 @@ def mode(status=None):
 
         __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini")
         LatestVersion__ = __Page.content.decode('utf-8')
-        AppVersion__ = "1.3.5"
+        AppVersion__ = "1.3.6"
     
     except:
         
@@ -530,8 +530,8 @@ def quickScan(folders, self):
                                 historyFilesDetected.append(file_name)
                                 __founded += 1;
                                 __foundInFolder += 1;
-                                console.log(f"[red]'{file_name}'[white] is infected with [red]'Trojan/badHash.gen'")
-                                self.resultWidget.insertItem(0,f"{file} (Trojan/badHash.gen)")
+                                console.log(f"[red]'{file_name}'[white] is infected with [red]'Win.unknowMalware!UDS@BadHash.GEN'")
+                                self.resultWidget.insertItem(0,f"{file} (Win.unknowMalware!UDS@BadHash.GEN)")
                                 self.Tabs.setCurrentIndex(3)
                             
                             if hashSha256 in sha256List and file_name not in historyFilesDetected:
@@ -779,11 +779,11 @@ def list_files(dir, self, tray):
                         if hashMD5 in md5List and file_name not in historyFilesDetected:
                             
                             historyFilesDetected.append(file_name)
-                            historyDetections.insert(0,f"{fileR}: Trojan/badHash.gen")
+                            historyDetections.insert(0,f"{fileR}: Win.unknowMalware!UDS@BadHash.GEN")
                             
-                            console.log(f"[red]'{file_name}'[white] is infected with [red]'Trojan/badHash.gen'")
+                            console.log(f"[red]'{file_name}'[white] is infected with [red]'Win.unknowMalware!UDS@BadHash.GEN'")
                             
-                            self.resultWidget.insertItem(fulltotal,f"{file_name} (Trojan/badHash.gen)")
+                            self.resultWidget.insertItem(fulltotal,f"{file_name} (Win.unknowMalware!UDS@BadHash.GEN)")
                             self.Tabs.setCurrentIndex(3)
                                         
                             
@@ -1448,8 +1448,8 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                     
                     if hashMD5 in md5List and found != True:
                             found = True;
-                            console.log(f"[red]'{filename}'[white] is infected with [red]'Trojan/badHash.gen'")
-                            notify(filepath,"status-warning-128.png",f"Type: Trojan/badHash.gen \nDetection: Hash list","Malware Detected")
+                            console.log(f"[red]'{filename}'[white] is infected with [red]'Win.unknowMalware!UDS@BadHash.GEN'")
+                            notify(filepath,"status-warning-128.png",f"Type: Win.unknowMalware!UDS@BadHash.GEN \nDetection: Hash list","Malware Detected")
                             self.FilePath.setText("Detection Type: Hash List")
                             scan_end(self, 1, f"File scan: {filepath}")
                     
