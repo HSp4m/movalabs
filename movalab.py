@@ -306,14 +306,25 @@ def mode(status=None):
 
         __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini")
         LatestVersion__ = __Page.content.decode('utf-8')
-        AppVersion__ = "1.3.8"
+        AppVersion__ = "1.3.9"
     
     except:
         
         console.log(f"[red]Fetch version[white] Returned a unexpected error. Check internet connection and try again.")
         exit()
 
-       
+    if os.path.isfile(current_dir + '/settings/dataset.ini'):
+        pass
+        
+    else:
+        console.log(f"[red]Dataset information[white] not found")
+        console.log(f'[yellow]Fixing...')
+        
+        updater()
+        
+        console.log('[blue]Restart required.')
+        __missing += 1
+    
     
     __updaterResult = update()
     __updaterDataResult = update("data")
