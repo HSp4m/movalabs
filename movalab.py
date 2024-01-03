@@ -6,6 +6,7 @@ import os
 import configparser
 import requests
 from virustotal_python import Virustotal
+from virustotal_python.virustotal import VirustotalError
 import hashlib
 from datetime import datetime
 from time import sleep, time
@@ -209,7 +210,7 @@ def compileHashes():
     global vrapikey;
     global metadefenderkey;
     global metadefender;
-    
+    global useyara;
     
     try:
         
@@ -273,9 +274,19 @@ def compileHashes():
         vrapikey = config['-settings-']['vrapikey']
         metadefenderkey = config["-settings-"]["metadefenderkey"]
         metadefender = config["-settings-"]["metadefender"]
-
-    except:
+        useyara = config["-settings-"]["useyara"]
         
+    except KeyError:
+        console.log(f"[red]Settings compile[white] Something went wrong when compiling the configurations. Starting the error fix process...")
+        sleep(1)
+        
+        updater('settings')
+
+        console.log('[blue]Restart required.')
+        
+        exit()
+        
+    except:   
         console.log(f"[red]Settings compile[white] Returned a unexpected error. Verify if the 'settings' folder exist or open this app on powershell")
         sleep(1)
         
@@ -295,7 +306,7 @@ def mode(status=None):
 
         __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini")
         LatestVersion__ = __Page.content.decode('utf-8')
-        AppVersion__ = "1.3.6"
+        AppVersion__ = "1.3.7"
     
     except:
         
@@ -339,7 +350,7 @@ def mode(status=None):
         
         if __updaterResult__ == True:
             
-            console.log(f"[bold green]Update completed sucefully! [A restart is needed.]") 
+            console.log(f"[bold green]Update completed sucefully! [restart required.]") 
             __missing +=1;
         else:
             console.log(f"[red]Update cannot be completed.")
@@ -355,7 +366,7 @@ def mode(status=None):
         
     else:
         console.log(f"[red]Module Dataset.F[white] missing")
-        console.log("[bold yellow]Restauring..")
+        console.log("[bold yellow]Fixing..")
         __updaterResult__ = updater()
         
         if __updaterResult__ == True:
@@ -373,11 +384,11 @@ def mode(status=None):
             
     else:
         console.log(f"[red]Module UI icons[white] Not found/Missing files")
-        console.log('[yellow]Restauring...')
+        console.log('[yellow]Fixing...')
         
         updater('imgres')
         
-        console.log('[blue]A restart is need.')
+        console.log('[blue]Restart required.')
         __missing+=1
         
            
@@ -388,11 +399,11 @@ def mode(status=None):
     else:
         
         console.log(f"[red]Module Settings[white] Not found")
-        console.log(f'[yellow]Restauring...')
+        console.log(f'[yellow]Fixing...')
         
         updater('settings')
         
-        console.log('[blue]A restart is need.')
+        console.log('[blue]Restart required.')
         __missing += 1
     
     
@@ -463,7 +474,7 @@ def quickScan(folders, self):
                 __None__.stop();
                 __updaterResult__ = updater("App")
                 if __updaterResult__ == True:
-                    console.log(f"[green]Update completed sucefully! [A restart is needed.]") 
+                    console.log(f"[green]Update completed sucefully! [restart required.]") 
                     
                     
                 else:
@@ -509,7 +520,9 @@ def quickScan(folders, self):
                             with open(file,'rb') as filef:
                                 
                                 file_content = filef.read()
-                                matchesFolder = rules.match(data=file_content)
+                                
+                                if self.useYara.isChecked() == True:
+                                    matchesFolder = rules.match(data=file_content)
                                 
                             hashMD5 = hashlib.md5(file_content).hexdigest()
                             hashSha256 = hashlib.sha256(file_content).hexdigest()
@@ -541,29 +554,29 @@ def quickScan(folders, self):
                                 console.log(f"[red]'{file_name}'[white] is infected with [red]'{threat}'")
                                 self.resultWidget.insertItem(0,f"{file} ({threat})")
                                 self.Tabs.setCurrentIndex(3)
-                            
-                            if matchesFolder != [] and file_name not in historyFilesDetected:
-                                __founded += 1;
-                                __foundInFolder += 1;
-                                for match in matchesFolder:
-                                    historyFilesDetected.append(file_name)
-                                    threat = match.meta.get('threat', "?")
-                                    
-                                    if threat == "?":
-                                        threat = match.meta.get('malware_family', "?")
+                            if self.useYara.isChecked() == True:
+                                if matchesFolder != [] and file_name not in historyFilesDetected:
+                                    __founded += 1;
+                                    __foundInFolder += 1;
+                                    for match in matchesFolder:
+                                        historyFilesDetected.append(file_name)
+                                        threat = match.meta.get('threat', "?")
+                                        
                                         if threat == "?":
-                                            threat = "Win.unknowMalware!UDS.GEN"
-                                            
-                                    if threat.split(':')[0] == 'not-a-virus':
-                                        threat = threat.replace('HEUR:','')
-                                        threat = threat.split(':')[0] + ':HEUR:' + threat.replace('not-a-virus:','')
-                                    else:
-                                        threat = "HEUR:" + threat.replace('HEUR:','')
-                                    
-                                            
-                                    console.log(f"[red]'{file_name}'[white] is infected with [red]'{threat}'")          
-                                    self.resultWidget.insertItem(0,f"{file} ({threat})")
-                                    self.Tabs.setCurrentIndex(3)
+                                            threat = match.meta.get('malware_family', "?")
+                                            if threat == "?":
+                                                threat = "Win.unknowMalware!UDS.GEN"
+                                                
+                                        if threat.split(':')[0] == 'not-a-virus':
+                                            threat = threat.replace('HEUR:','')
+                                            threat = threat.split(':')[0] + ':HEUR:' + threat.replace('not-a-virus:','')
+                                        else:
+                                            threat = "HEUR:" + threat.replace('HEUR:','')
+                                        
+                                                
+                                        console.log(f"[red]'{file_name}'[white] is infected with [red]'{threat}'")          
+                                        self.resultWidget.insertItem(0,f"{file} ({threat})")
+                                        self.Tabs.setCurrentIndex(3)
                                     
                         except:
                             
@@ -694,7 +707,7 @@ def list_files(dir, self, tray):
                 __None__.stop();
                 __updaterResult__ = updater("App")
                 if __updaterResult__ == True:
-                    console.log(f"[green]Update completed sucefully! [A restart is needed.]") 
+                    console.log(f"[green]Update completed sucefully! [restart required.]") 
                     
                     
                 else:
@@ -746,7 +759,9 @@ def list_files(dir, self, tray):
                     if file_name not in ["movalab.py", "new.yara"]:
                         with open(file,'rb') as filef:
                                 file_content = filef.read()
-                                matchesFolder = rules.match(data=file_content)
+                                
+                                if self.useYara.isChecked() == True:
+                                    matchesFolder = rules.match(data=file_content)
                         
                         hashMD5 = hashlib.md5(file_content).hexdigest()
                         hashSha256 = hashlib.sha256(file_content).hexdigest()
@@ -767,7 +782,7 @@ def list_files(dir, self, tray):
                         
                         if isinstance(__InDB, tuple) and file_name not in historyFilesDetected:
                             
-                            console.log(f"[red]'{file_name}'[white] is infected with [red]'{__InDB[1]}'")
+                            console.log(f"[red]'{file_name}'[white] is infected with [red]'{__InDB[1]}' (Detected in sqlDB)")
                             historyFilesDetected.append(file_name)
                                         
                                         
@@ -787,36 +802,36 @@ def list_files(dir, self, tray):
                             self.Tabs.setCurrentIndex(3)
                                         
                             
-
+                        if self.useYara.isChecked() == True:
                                     
-                        if matchesFolder != [] and file_name not in historyFilesDetected:
-                            
-                            
-                            self.Tabs.setCurrentIndex(3)
-                            for match in matchesFolder:
+                            if matchesFolder != [] and file_name not in historyFilesDetected:
+                                
+                                
+                                self.Tabs.setCurrentIndex(3)
+                                for match in matchesFolder:
 
-                                if file_name not in historyFilesDetected:    
-                                    
-                                    threat = match.meta.get('threat', "?")
+                                    if file_name not in historyFilesDetected:    
                                         
-                                    
-                                    if threat == "?":
-                                        threat = match.meta.get('malware_family', "?")
-                                        if threat == "?":
-                                            threat = "Win.unknowMalware!UDS.GEN"
-
-                                    if threat.split(':')[0] == 'not-a-virus':
-                                        threat = threat.replace('HEUR:','')
-                                        threat = threat.split(':')[0] + ':HEUR:' + threat.replace('not-a-virus:','')
-                                    else:
-                                        threat = "HEUR:" + threat.replace('HEUR:','')
-
+                                        threat = match.meta.get('threat', "?")
                                             
-                                    historyFilesDetected.append(file_name)
-                                    self.resultWidget.insertItem(fulltotal,f"{file_name} ({threat})")
+                                        
+                                        if threat == "?":
+                                            threat = match.meta.get('malware_family', "?")
+                                            if threat == "?":
+                                                threat = "Win.unknowMalware!UDS.GEN"
 
-                                    historyDetections.insert(0,f"{fileR}: {threat}")
-                                    console.log(f"[red]'{file_name}'[white] is infected with [red]'{threat}'")
+                                        if threat.split(':')[0] == 'not-a-virus':
+                                            threat = threat.replace('HEUR:','')
+                                            threat = threat.split(':')[0] + ':HEUR:' + threat.replace('not-a-virus:','')
+                                        else:
+                                            threat = "HEUR:" + threat.replace('HEUR:','')
+
+                                                
+                                        historyFilesDetected.append(file_name)
+                                        self.resultWidget.insertItem(fulltotal,f"{file_name} ({threat})")
+
+                                        historyDetections.insert(0,f"{fileR}: {threat}")
+                                        console.log(f"[red]'{file_name}'[white] is infected with [red]'{threat}'")
                     else:
                         continue 
         
@@ -994,6 +1009,13 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
         font.setPointSize(10)
         self.EnableScanHistory.setFont(font)
         self.EnableScanHistory.setObjectName("EnableScanHistory")
+        
+        self.useYara = QtWidgets.QCheckBox(self.SettingsTab)
+        self.useYara.setGeometry(QtCore.QRect(5, 225, 451, 17))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.useYara.setFont(font)
+        self.useYara.setObjectName("useYara")
         
         self.MalwareBazzarApiCheckBox = QtWidgets.QCheckBox(self.SettingsTab)
         self.MalwareBazzarApiCheckBox.setGeometry(QtCore.QRect(5, 135, 451, 17))
@@ -1354,7 +1376,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                         __None__.stop();
                         __updaterResult__ = updater("App")
                         if __updaterResult__ == True:
-                            console.log(f"[green]Update completed sucefully! [A restart is needed.]") 
+                            console.log(f"[green]Update completed sucefully! [restart required.]") 
                             
                             
                         else:
@@ -1386,40 +1408,42 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                     file_content = file.read()
                     suspecious = False;
                     found = False;
-                    with open(direc,'rb') as filef:
-                        
-                        matches = rules.match(data=filef.read())
-                        
                     
-                    if matches != []:
+                    if self.useYara.isChecked() == True:
+                        with open(direc,'rb') as filef:
+                            
+                            matches = rules.match(data=filef.read())
+                            
                         
-                        
-                        
-                        for match in matches:
-                                if found != True:
-                                    found = True;
-                                    
-                                    threat = match.meta.get('threat', '?')
-                                    
-                                    if threat == "?":
-                                        threat = match.meta.get('malware_family', "?")
+                        if matches != []:
+                            
+                            
+                            
+                            for match in matches:
+                                    if found != True:
+                                        found = True;
                                         
-                                        if threat == "?": 
-                                            threat = "Win.unknowMalware!UDS.GEN"
+                                        threat = match.meta.get('threat', '?')
+                                        
+                                        if threat == "?":
+                                            threat = match.meta.get('malware_family', "?")
                                             
-                                    if threat.split(':')[0] == 'not-a-virus':
-                                        threat = threat.replace('HEUR:','')
-                                        threat = threat.split(':')[0] + ':HEUR:' + threat.replace('not-a-virus:','')
-                                    else:
-                                        threat = "HEUR:" + threat.replace('HEUR:','')
-                                    
-                                    console.log(F"[red]'{filename}'[white] is infected with [red]'{threat}'")
-                                    scan_end(self, 1, f"File scan: {filepath}")
-                                    notify(filepath,"status-warning-128.png",f"Type: {threat} \nDetection: Yara rules","Malware Detected")
-                                    self.FilePath.setText(f"Detection Type: Yara Rules ({threat})")
-                                    
-                                    
-                    
+                                            if threat == "?": 
+                                                threat = "Win.unknowMalware!UDS.GEN"
+                                                
+                                        if threat.split(':')[0] == 'not-a-virus':
+                                            threat = threat.replace('HEUR:','')
+                                            threat = threat.split(':')[0] + ':HEUR:' + threat.replace('not-a-virus:','')
+                                        else:
+                                            threat = "HEUR:" + threat.replace('HEUR:','')
+                                        
+                                        console.log(F"[red]'{filename}'[white] is infected with [red]'{threat}'")
+                                        scan_end(self, 1, f"File scan: {filepath}")
+                                        notify(filepath,"status-warning-128.png",f"Type: {threat} \nDetection: Yara rules","Malware Detected")
+                                        self.FilePath.setText(f"Detection Type: Yara Rules ({threat})")
+                                        
+                                        
+                        
                         
                     hashMD5 = hashlib.md5(file_content).hexdigest()
                     hashSha256 = hashlib.sha256(file_content).hexdigest()
@@ -1440,10 +1464,10 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                     if isinstance(__InDB, tuple) and found != True:
                         
                         found = True;
-                        self.FilePath.setText("Detection Type: Hash List")    
+                        self.FilePath.setText("Detection Type: HashDb")    
                         console.log(f"[red]'{filename}'[white] is infected with [red]'{__InDB[1]}'")
                         scan_end(self, 1, f"File scan: {filepath}")
-                        notify(filepath,"status-warning-128.png",f"Type: {__InDB[1]} \nDetection: Hash list","Malware Detected")
+                        notify(filepath,"status-warning-128.png",f"Type: {__InDB[1]} \nDetection: HashDb","Malware Detected")
                     
                     
                     if hashMD5 in md5List and found != True:
@@ -1460,7 +1484,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                     
                     try:
                         if self.UseVirusTotalApiCheckBox.isChecked() and found != True and os.path.getsize(filepath) < 32000000:
-                            if vrapikey != '':
+                            if self.VirusTotalApiKey.text() != '':
                                 if direc != '':
                                     if os.path.isfile(direc):
                                         found = False;
@@ -1468,10 +1492,34 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                                         
                                         files = {"file": (os.path.basename(filepath), open(os.path.abspath(filepath), "rb"))}
                                         
-                                        vtotal = Virustotal(API_KEY=vrapikey)
-                                        resp = vtotal.request("files", files=files, method="POST")
+                                        vtotal = Virustotal(API_KEY=self.VirusTotalApiKey.text())
+                                        try:
+                                            resp = vtotal.request("files", files=files, method="POST")
+                                        
+                                        except VirustotalError:
+                                            msg = QtWidgets.QMessageBox() 
+                                            msg.setIcon(QtWidgets.QMessageBox.Critical) 
+                                                
+                                                    # setting message for Message Box 
+                                            msg.setText("Virustotal Api.")
+                                            msg.setInformativeText(f"Virustotal apikey is invalid.")
+                                             
+                                                    
+                                                    # setting Message box window title 
+                                            msg.setWindowTitle("Movalabs") 
+                                                    
+                                                    # declaring buttons on Message Box 
+                                            msg.setStandardButtons(QtWidgets.QMessageBox.Ok) 
+                                                    
+                                                    # start the app 
+                                                
+                                            retval = msg.exec_()
+                                            
+                                            
+                                            
+                                            
                                         id = resp.data["id"]
-                                        headers = {"x-apikey": vrapikey}
+                                        headers = {"x-apikey": self.VirusTotalApiKey.text()}
                                         analysis = requests.get(f"https://www.virustotal.com/api/v3/analyses/{id}", headers=headers)
                                         analysis_json = analysis.json()
                                         
@@ -1927,7 +1975,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                 
                 if __UpdaterResult__ == True:
                     msg.setIcon(QtWidgets.QMessageBox.Information) 
-                    msg.setInformativeText(f"Update completed. [A app restart is need.]")
+                    msg.setInformativeText(f"Update completed. [App restart required]")
                     msg.setText("Updater") 
                                             
                                             # setting Message box window title 
@@ -1976,6 +2024,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
             config.set('-settings-', 'metadefender', str(self.UseMetaDefenderApiCheckBox.isChecked()))
             config.set('-settings-', 'automatic_update', str(self.AutomaticUpdates.isChecked()))
             config.set('-settings-', 'scan_history', str(self.EnableScanHistory.isChecked()))
+            config.set('-settings-','useyara', str(self.useYara.isChecked()))
             
             with open(settings_path, 'w') as configfile:
                 config.write(configfile)
@@ -2060,6 +2109,13 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
             self.EnableScanHistory.setChecked(True)
         else:
             self.EnableScanHistory.setChecked(False)    
+            
+        if useyara == "True":
+            self.useYara.setChecked(True)
+        
+        else:
+            self.useYara.setChecked(False)
+        
         #VerifyUpdatesButton
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", f"Movalabs"))
@@ -2074,6 +2130,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
         self.VerifyUpdatesButton.setText(_translate("MainWindow", "Verify for updates"))
         self.SettingsTitle.setText(_translate("MainWindow", "Settings"))
         self.AutomaticUpdates.setText(_translate("MainWindow", "Automatic updates"))
+        self.useYara.setText(_translate("MainWindow","Use yara in scans"))
         self.UseVirusTotalApiCheckBox.setText(_translate("MainWindow", "Use Virus Total api (only files under 32MB)"))
         self.VirusTotalApiKey.setPlaceholderText(_translate("MainWindow", "Enter your Virus Total api Key here"))
         self.SaveSettingsButton.setText(_translate("MainWindow", "Save Config"))
