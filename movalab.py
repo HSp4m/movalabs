@@ -433,7 +433,7 @@ def mode(status=None):
         __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.json")
         LastUpdate__ = json.loads(__Page.content.decode('utf-8'))["lastupdate"]
         LatestVersion__ = json.loads(__Page.content.decode('utf-8'))["version"]
-        AppVersion__ = "1.3.9addFilesTestp2"
+        AppVersion__ = "1.4.0preRelease"
     
     except:
         
@@ -463,7 +463,7 @@ def mode(status=None):
         console.log(f"[red]Module Dataset[white] Missing update")
         console.log(f"[yellow]Starting update...")
         status.stop()
-        __updaterResult__ = updater('main')
+        __updaterResult__ = updater()
         
         if __updaterResult__ == True:
              
@@ -623,7 +623,7 @@ def quickScan(folders, self):
             
             if __updaterDataResult == True:
                 console.log(f"[yellow]Starting a Dataset update!") 
-                __updaterResult__ = updater("main");
+                __updaterResult__ = updater();
                 
                 if __updaterResult__ == True:
                     console.log(f"[green]Update completed sucefully!") 
@@ -856,7 +856,7 @@ def list_files(dir, self, tray):
             
             if __updaterDataResult == True:
                 console.log(f"[yellow]Starting a Dataset update!") 
-                __updaterResult__ = updater("main");
+                __updaterResult__ = updater();
                 
                 if __updaterResult__ == True:
                     console.log(f"[green]Update completed sucefully!") 
@@ -1525,7 +1525,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                     
                     if __updaterDataResult == True:
                         console.log(f"[yellow]Starting a Dataset update!") 
-                        __updaterResult__ = updater("main");
+                        __updaterResult__ = updater();
                         
                         if __updaterResult__ == True:
                             console.log(f"[green]Update completed sucefully!") 
@@ -2073,7 +2073,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                 
             else:
                 console.log("[green]Running a dataset update..")
-                __UpdaterDataResult__ = updater("main")
+                __UpdaterDataResult__ = updater()
                 update__ += 1;
                     
                 if __UpdaterDataResult__ == True:
