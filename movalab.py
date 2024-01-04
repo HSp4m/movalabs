@@ -33,6 +33,68 @@ QuickscanFolders = ["C:\\Windows\\Temp", f"C:\\Users\\{getpass.getuser()}\\AppDa
 
 def updater(module="dataset"):
     
+    if module == "main":
+        
+        msg = QtWidgets.QMessageBox() 
+        msg.setIcon(QtWidgets.QMessageBox.Warning) 
+        msg.setWindowIcon(QtGui.QIcon(current_dir + "/res/ico/AntiVirus_ico.svg"))
+
+        msg.setInformativeText("'main mode updater' has been started. This mode not ask in a update. Continue?")
+        msg.setText("Updater") 
+                                        
+                                        # setting Message box window title 
+        msg.setWindowTitle("Movalabs") 
+                                        
+                                        # declaring buttons on Message Box 
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel) 
+                                        
+                                        # start the app 
+                                    
+        retval = msg.exec_()
+        if retval == 1024:
+            __fullJson = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.json")
+            console.log("[yellow]Starting update system...")
+
+            for i in __fullJson["releaseChanges"]:
+
+                for y in __fullJson["releaseChanges"][i]:
+                    item = {__fullJson['releaseChanges'][i][y]}
+                    if i == "add":
+
+                        console.log("[red]This option is in development.")
+                        
+                    elif i == "delete":
+                        console.log(f"[yellow]Removing the file: '[white]{item}[yellow]'.")
+                        
+                        if os.path.isfile(current_dir + item):
+                            try:
+                                os.remove(current_dir + item)
+                                console.log(f"[blue]The file '[white]{item}[blue]' has been removed successfully.")
+                            except:
+                                console.log(f"[red]Something went wrong. Skipping the file: '[white]{item}[red]'.")
+                                continue
+                        
+                        else:
+                            continue
+                    
+                    elif i == "change":
+                        console.log(f"[yellow]Updating the file: '[white]{item}[yellow]'.")
+                        
+                        requestUnknown = requests.get(f"https://raw.githubusercontent.com/HSp4m/movalabs/main{item}")
+            
+                        try:
+                            with open(current_dir + item, "rb") as f:
+                                f.write(requestUnknown.content)
+                                console.log(f"[blue]The file '[white]{item}[blue]' has been updated successfully.")
+                                continue
+                        except:
+                            console.log(f"[red]Something went wrong. Skipping the file: '[white]{item}[red]'.")
+                            continue
+            
+        else:
+            return False;  
+        
+    
     if module == "dataset":
         
         try:
@@ -308,7 +370,7 @@ def mode(status=None):
         __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.json")
         LastUpdate__ = json.loads(__Page.content.decode('utf-8'))["lastupdate"]
         LatestVersion__ = json.loads(__Page.content.decode('utf-8'))["version"]
-        AppVersion__ = "1.3.9betaTest"
+        AppVersion__ = "1.3.9updateTest"
     
     except:
         
@@ -338,7 +400,7 @@ def mode(status=None):
         console.log(f"[red]Module Dataset[white] Missing update")
         console.log(f"[yellow]Starting update...")
         status.stop()
-        __updaterResult__ = updater()
+        __updaterResult__ = updater('main')
         
         if __updaterResult__ == True:
              
@@ -361,7 +423,7 @@ def mode(status=None):
         console.log(f"[blue]Release date: [white]{LastUpdate__}")
         console.log(f"[yellow]Starting update...")
         status.stop()
-        __updaterResult__ = updater("App")
+        __updaterResult__ = updater("main")
         
         if __updaterResult__ == True:
             
@@ -487,7 +549,7 @@ def quickScan(folders, self):
             if __updaterResult == True:
                 console.log(f"[yellow]Starting a App update!") 
                 __None__.stop();
-                __updaterResult__ = updater("App")
+                __updaterResult__ = updater("main")
                 if __updaterResult__ == True:
                     console.log(f"[green]Update completed sucefully! [restart required.]") 
                     
@@ -498,7 +560,7 @@ def quickScan(folders, self):
             
             if __updaterDataResult == True:
                 console.log(f"[yellow]Starting a Dataset update!") 
-                __updaterResult__ = updater();
+                __updaterResult__ = updater("main");
                 
                 if __updaterResult__ == True:
                     console.log(f"[green]Update completed sucefully!") 
@@ -720,7 +782,7 @@ def list_files(dir, self, tray):
                 console.log(f"[yellow]Starting a App update!") 
                 
                 __None__.stop();
-                __updaterResult__ = updater("App")
+                __updaterResult__ = updater("main")
                 if __updaterResult__ == True:
                     console.log(f"[green]Update completed sucefully! [restart required.]") 
                     
@@ -731,7 +793,7 @@ def list_files(dir, self, tray):
             
             if __updaterDataResult == True:
                 console.log(f"[yellow]Starting a Dataset update!") 
-                __updaterResult__ = updater();
+                __updaterResult__ = updater("main");
                 
                 if __updaterResult__ == True:
                     console.log(f"[green]Update completed sucefully!") 
@@ -1389,7 +1451,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                         console.log(f"[yellow]Starting a App update!") 
                         
                         __None__.stop();
-                        __updaterResult__ = updater("App")
+                        __updaterResult__ = updater("main")
                         if __updaterResult__ == True:
                             console.log(f"[green]Update completed sucefully! [restart required.]") 
                             
@@ -1400,7 +1462,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                     
                     if __updaterDataResult == True:
                         console.log(f"[yellow]Starting a Dataset update!") 
-                        __updaterResult__ = updater();
+                        __updaterResult__ = updater("main");
                         
                         if __updaterResult__ == True:
                             console.log(f"[green]Update completed sucefully!") 
@@ -1948,7 +2010,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                 
             else:
                 console.log("[green]Running a dataset update..")
-                __UpdaterDataResult__ = updater()
+                __UpdaterDataResult__ = updater("main")
                 update__ += 1;
                     
                 if __UpdaterDataResult__ == True:
@@ -1986,7 +2048,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                 noupdate__ += 1;
             
             else:
-                __UpdaterResult__ = updater("App")
+                __UpdaterResult__ = updater("main")
                 
                 if __UpdaterResult__ == True:
                     msg.setIcon(QtWidgets.QMessageBox.Information) 
