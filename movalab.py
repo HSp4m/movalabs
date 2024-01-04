@@ -39,7 +39,7 @@ def updater(module="dataset"):
         msg.setIcon(QtWidgets.QMessageBox.Warning) 
         msg.setWindowIcon(QtGui.QIcon(current_dir + "/res/ico/AntiVirus_ico.svg"))
 
-        msg.setInformativeText("'main mode updater' has been started. This mode not ask in a update. Continue?")
+        msg.setInformativeText("'main mode updater EXPERIMENTAL' has been started. This mode not ask in a update. Continue?")
         msg.setText("Updater") 
                                         
                                         # setting Message box window title 
@@ -62,7 +62,64 @@ def updater(module="dataset"):
                     item = __fullJson['releaseChanges'][i][y]
                     if i == "add":
 
-                        console.log("[red]This option is in development.")
+                        createdFolders = []
+                        pathSFinal__ = "/"
+                        splitedF__ = item.split("/")
+                        
+                        for i in splitedF__:
+                            
+                            if i in ['', None]:
+                                continue
+                            
+                            try: 
+                                
+                                extensionSplit = i.split(".")[1]
+                                
+                                fileContent__ = requests.get(f'https://raw.githubusercontent.com/HSp4m/movalabs/main/{i}')
+                                
+                                console.log(f'[yellow]Creating file: {i}')
+                                
+                                if len(createdFolders) == 0:
+                                    with open(current_dir + f"/{i}", 'ab') as f:
+                                        f.write(fileContent__.content)
+                                        
+                                elif len(createdFolders) == 1:
+                                    with open(current_dir + f"/{createdFolders[0]}/{i}", 'ab') as f:
+                                        f.write(fileContent__.content)
+                                        
+                                else:
+                                    with open(current_dir + f"{finalPATH__}/{i}", 'ab') as f:
+                                        f.write(fileContent__.content)
+
+                            except:
+
+                                console.log(f'[yellow]Creating dir: {i}')
+                                
+                                if len(createdFolders) == 0:
+                                    if os.path.isdir(current_dir + f"/{i}"):
+                                        pass
+                                    else:
+                                        os.mkdir(current_dir + f"/{i}")
+                                    createdFolders.append(i)
+
+                                else:
+                                    for y in createdFolders:
+                                        if y == splitedF__[1]:
+                                            pathSFinal__ = "/" + f"{y}/"
+                                            
+                                        else:
+                                            pathSFinal__ = pathSFinal__ + f"{y}/"
+                                    console.log(pathSFinal__)
+                                    
+                                    if os.path.isdir(current_dir + f"{pathSFinal__}{i}"):
+                                        pass
+                                    
+                                    else:
+                                        os.mkdir(current_dir + f"{pathSFinal__}{i}")
+                                        
+                                    createdFolders.append(i)
+                                
+                                finalPATH__ = pathSFinal__ + i
                         
                     elif i == "delete":
                         console.log(f"[yellow]Removing the file: '[white]{item}[yellow]'.")
@@ -373,7 +430,7 @@ def mode(status=None):
         __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.json")
         LastUpdate__ = json.loads(__Page.content.decode('utf-8'))["lastupdate"]
         LatestVersion__ = json.loads(__Page.content.decode('utf-8'))["version"]
-        AppVersion__ = "1.3.9updateTestf"
+        AppVersion__ = "1.3.9addFilesTest"
     
     except:
         
