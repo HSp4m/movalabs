@@ -10,7 +10,7 @@
 
     "releaseChanges": {
         "delete": {
-
+            "1": "/testing-folder/testingfile.txt"
         },
 
         "change": {
@@ -19,7 +19,7 @@
         },
 
         "add": {
-            "1": "/testing-folder/testingfile.txt"
+            
         }
     }
 }
