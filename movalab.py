@@ -75,20 +75,23 @@ def updater(module="dataset"):
                                 
                                 extensionSplit = i.split(".")[1]
                                 
-                                fileContent__ = requests.get(f'https://raw.githubusercontent.com/HSp4m/movalabs/main/{i}')
                                 
+                                console.log(f'https://raw.githubusercontent.com/HSp4m/movalabs/main/{i}')
                                 console.log(f'[yellow]Creating file: {i}')
                                 
                                 if len(createdFolders) == 0:
                                     with open(current_dir + f"/{i}", 'ab') as f:
+                                        fileContent__ = requests.get(f'https://raw.githubusercontent.com/HSp4m/movalabs/main/{i}')
                                         f.write(fileContent__.content)
                                         
                                 elif len(createdFolders) == 1:
                                     with open(current_dir + f"/{createdFolders[0]}/{i}", 'ab') as f:
+                                        fileContent__ = requests.get(f'https://raw.githubusercontent.com/HSp4m/movalabs/main/{createdFolders[0]}/{i}')
                                         f.write(fileContent__.content)
                                         
                                 else:
                                     with open(current_dir + f"{finalPATH__}/{i}", 'ab') as f:
+                                        fileContent__ = requests.get(f'https://raw.githubusercontent.com/HSp4m/movalabs/main/{finalPATH__}/{i}')
                                         f.write(fileContent__.content)
 
                             except:
@@ -430,7 +433,7 @@ def mode(status=None):
         __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.json")
         LastUpdate__ = json.loads(__Page.content.decode('utf-8'))["lastupdate"]
         LatestVersion__ = json.loads(__Page.content.decode('utf-8'))["version"]
-        AppVersion__ = "1.3.9addFilesTest"
+        AppVersion__ = "1.3.9addFilesTestp2"
     
     except:
         
