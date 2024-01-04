@@ -53,6 +53,7 @@ def updater(module="dataset"):
         retval = msg.exec_()
         if retval == 1024:
             __fullJson = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.json")
+            __fullJson = json.loads(__fullJson)
             console.log("[yellow]Starting update system...")
 
             for i in __fullJson["releaseChanges"]:
@@ -370,7 +371,7 @@ def mode(status=None):
         __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.json")
         LastUpdate__ = json.loads(__Page.content.decode('utf-8'))["lastupdate"]
         LatestVersion__ = json.loads(__Page.content.decode('utf-8'))["version"]
-        AppVersion__ = "1.3.9updateTest"
+        AppVersion__ = "1.3.9updateTestp2"
     
     except:
         
