@@ -387,7 +387,7 @@ def mode(status=None):
         __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.json")
         LastUpdate__ = json.loads(__Page.content.decode('utf-8'))["lastupdate"]
         LatestVersion__ = json.loads(__Page.content.decode('utf-8'))["version"]
-        AppVersion__ = "1.4.0testRelease"
+        AppVersion__ = "1.4.0testImprovRelease"
     
     except:
         
@@ -422,7 +422,7 @@ def mode(status=None):
         if __updaterResult__ == True:
              
             
-            console.log(f"[green]Dataset Update completed sucefully!") 
+            console.log(f"[green]Dataset Update completed successfully!") 
             compileHashes();
         
         else:
@@ -440,13 +440,16 @@ def mode(status=None):
         console.log(f"[blue]Release date: [white]{LastUpdate__}")
         console.log(f"[yellow]Starting update...")
         status.stop()
+        print()
         __updaterResult__ = updater("main")
         
         if __updaterResult__ == True:
-            
-            console.log(f"[bold green]Update completed sucefully! [restart required.]") 
+            print()
+            console.log(f"[bold green]Update completed successfully!") 
+            console.log('[blue]Restart required.')
             __missing +=1;
         else:
+            print()
             console.log(f"[red]Update cannot be completed.")
 
     else:
@@ -466,7 +469,7 @@ def mode(status=None):
         if __updaterResult__ == True:
              
             
-            console.log(f"[green]Dataset files restaured sucefully!") 
+            console.log(f"[green]Dataset files restaured successfully!") 
         
         else:
             console.log(f"[red]Dataset files cannot be restaured. Reinstall the app.")
@@ -568,7 +571,7 @@ def quickScan(folders, self):
                 __None__.stop();
                 __updaterResult__ = updater("main")
                 if __updaterResult__ == True:
-                    console.log(f"[green]Update completed sucefully! [restart required.]") 
+                    console.log(f"[green]Update completed successfully! [restart required.]") 
                     
                     
                 else:
@@ -580,7 +583,7 @@ def quickScan(folders, self):
                 __updaterResult__ = updater();
                 
                 if __updaterResult__ == True:
-                    console.log(f"[green]Update completed sucefully!") 
+                    console.log(f"[green]Update completed successfully!") 
                     compileHashes();
                     
                 else:
@@ -801,7 +804,7 @@ def list_files(dir, self, tray):
                 __None__.stop();
                 __updaterResult__ = updater("main")
                 if __updaterResult__ == True:
-                    console.log(f"[green]Update completed sucefully! [restart required.]") 
+                    console.log(f"[green]Update completed successfully! [restart required.]") 
                     
                     
                 else:
@@ -813,7 +816,7 @@ def list_files(dir, self, tray):
                 __updaterResult__ = updater();
                 
                 if __updaterResult__ == True:
-                    console.log(f"[green]Update completed sucefully!") 
+                    console.log(f"[green]Update completed successfully!") 
                     compileHashes();
                     
                 else:
@@ -1470,7 +1473,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                         __None__.stop();
                         __updaterResult__ = updater("main")
                         if __updaterResult__ == True:
-                            console.log(f"[green]Update completed sucefully! [restart required.]") 
+                            console.log(f"[green]Update completed successfully! [restart required.]") 
                             
                             
                         else:
@@ -1482,7 +1485,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                         __updaterResult__ = updater();
                         
                         if __updaterResult__ == True:
-                            console.log(f"[green]Update completed sucefully!") 
+                            console.log(f"[green]Update completed successfully!") 
                             compileHashes();
                             
                         else:
@@ -1912,7 +1915,7 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
                 try:
                     os.remove(file)
 
-                    notify(file,"status-ok-128.png",f"A malware has been neutralized sucefully.", "Malware neutralized")
+                    notify(file,"status-ok-128.png",f"A malware has been neutralized successfully.", "Malware neutralized")
                 except:
 
                     notify(file,"status-warning-128.png",f"A error ocurred while neutralizing a malware. This file cannot be neutralized.", "Malware cannot be neutralized")
