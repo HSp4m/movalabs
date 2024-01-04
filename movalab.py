@@ -28,7 +28,7 @@ current_dir = os.path.dirname(__file__)
 settings_path = current_dir + "/settings/settings.ini"
 quarantine_path = current_dir + "/settings/quarantine/"
 meta_defender_api = "https://api.metadefender.com/v4/hash/"
-QuickscanFolders = ["C:\\Windows\\Temp", f"C:\\Users\\{getpass.getuser()}\\AppData\\Local\\Temp", f"C:\\Users\\{getpass.getuser()}\\Downloads", f"C:\\Users\\{getpass.getuser()}\\Documents", "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Startup", "C:\\Windows\\System32", "C:\\Program Files", "C:\Program Files (x86)"]
+QuickscanFolders = ["C:/Windows/Temp", f"C:/Users/{getpass.getuser()}/AppData/Local/Temp", f"C:/Users/{getpass.getuser()}/Downloads", "C:/ProgramData/Microsoft/Windows/Start Menu/Programs/Startup", "C:/Windows/System32"]
 
 
 def updater(module="dataset"):
@@ -39,19 +39,19 @@ def updater(module="dataset"):
         msg.setIcon(QtWidgets.QMessageBox.Warning) 
         msg.setWindowIcon(QtGui.QIcon(current_dir + "/res/ico/AntiVirus_ico.svg"))
 
-        msg.setInformativeText("'main mode updater EXPERIMENTAL' has been started. This mode not ask in a update. Continue?")
+        msg.setInformativeText("The EXPERIMENTAL updater mode is now running. This mode automatically updates the app without user confirmation. Are you sure you want to continue?")
         msg.setText("Updater") 
                                         
-                                        # setting Message box window title 
+
         msg.setWindowTitle("Movalabs") 
                                         
-                                        # declaring buttons on Message Box 
-        msg.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel) 
+        msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No) 
                                         
-                                        # start the app 
                                     
         retval = msg.exec_()
-        if retval == 1024:
+        
+
+        if retval == 16384:
             __fullJson = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.json")
             __fullJson = json.loads(__fullJson.content)
             console.log("[yellow]Starting update system...")
@@ -204,53 +204,7 @@ def updater(module="dataset"):
         else:
             console.log(f"[red]Cannot make connection into github. (404)")
             return False;
-        
-    elif module == "App":
-        msg = QtWidgets.QMessageBox() 
-        msg.setIcon(QtWidgets.QMessageBox.Warning) 
-        msg.setWindowIcon(QtGui.QIcon(current_dir + "\\res\\ico\\AntiVirus_ico.svg"))
 
-        msg.setInformativeText(f"New app release can be downloaded. Download Now?")
-        msg.setText("Updater") 
-                                        
-                                        # setting Message box window title 
-        msg.setWindowTitle("Movalabs") 
-                                        
-                                        # declaring buttons on Message Box 
-        msg.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel) 
-                                        
-                                        # start the app 
-                                    
-        retval = msg.exec_()
-        
-        if retval == 1024:
-            try:
-                requestApp = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/movalab.py");
-                
-            except:
-                console.log(f"[red]Cannot make connection into github. Verify your internet connection and try again.")
-                return False;
-
-            if requestApp.status_code:
-                
-                
-                    
-                contentApp = requestApp.content;
-                fileApp = open(__file__, "wb");
-                fileApp.write(contentApp)
-                fileApp.close();
-
-                    
-                return True;
-                    
-            else:
-                console.log(f"[red]Cannot make connection into github. (404)")
-                return False;
-        
-        else:
-            return False;    
-        
-        
     elif module == "imgres":
         try:
             homeIcon = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/res/SideBar/home-outlinedWHITE.svg").content
@@ -433,7 +387,7 @@ def mode(status=None):
         __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.json")
         LastUpdate__ = json.loads(__Page.content.decode('utf-8'))["lastupdate"]
         LatestVersion__ = json.loads(__Page.content.decode('utf-8'))["version"]
-        AppVersion__ = "1.4.0preRelease"
+        AppVersion__ = "1.4.0testRelease"
     
     except:
         
