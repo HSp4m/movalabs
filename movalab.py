@@ -53,13 +53,13 @@ def updater(module="dataset"):
         retval = msg.exec_()
         if retval == 1024:
             __fullJson = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.json")
-            __fullJson = json.loads(__fullJson)
+            __fullJson = json.loads(__fullJson.content)
             console.log("[yellow]Starting update system...")
 
             for i in __fullJson["releaseChanges"]:
 
                 for y in __fullJson["releaseChanges"][i]:
-                    item = {__fullJson['releaseChanges'][i][y]}
+                    item = __fullJson['releaseChanges'][i][y]
                     if i == "add":
 
                         console.log("[red]This option is in development.")
@@ -84,14 +84,16 @@ def updater(module="dataset"):
                         requestUnknown = requests.get(f"https://raw.githubusercontent.com/HSp4m/movalabs/main{item}")
             
                         try:
-                            with open(current_dir + item, "rb") as f:
+                            with open(current_dir + item, "wb") as f:
                                 f.write(requestUnknown.content)
                                 console.log(f"[blue]The file '[white]{item}[blue]' has been updated successfully.")
                                 continue
+                        
                         except:
+                            
                             console.log(f"[red]Something went wrong. Skipping the file: '[white]{item}[red]'.")
                             continue
-            
+            return True
         else:
             return False;  
         
@@ -371,7 +373,7 @@ def mode(status=None):
         __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.json")
         LastUpdate__ = json.loads(__Page.content.decode('utf-8'))["lastupdate"]
         LatestVersion__ = json.loads(__Page.content.decode('utf-8'))["version"]
-        AppVersion__ = "1.3.9updateTestp2"
+        AppVersion__ = "1.3.9updateTestf"
     
     except:
         
