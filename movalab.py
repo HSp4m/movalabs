@@ -14,6 +14,7 @@ from rich.console import Console
 import sqlite3
 import getpass
 from winotify import Notification, audio
+import json
 
 console = Console()
 hash = "";
@@ -39,7 +40,7 @@ def updater(module="dataset"):
             requestSha256 = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/hash/256.txt");
             requestSql = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/hash/HashDB");
             requestYara = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/new.yara");
-            requestDataset = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/dataset.ini");
+            requestDataset = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.json");
             
         except:
             console.log(f"[red]Cannot make connection into github. Verify your internet connection and try again.")
@@ -57,7 +58,7 @@ def updater(module="dataset"):
             fileSha256 = open(current_dir + "/hash/256.txt", "wb");
             fileSql = open(current_dir + "/hash/HashDB", "wb");
             fileYara = open(current_dir + "/new.yara", "wb");
-            fileDataset = open(current_dir + "/settings/dataset.ini", "wb");
+            fileDataset = open(current_dir + "/settings/version.json", "wb");
                 
             fileMD5.write(contentMd5)
             fileSha256.write(contentSha256)
@@ -84,7 +85,7 @@ def updater(module="dataset"):
         msg.setIcon(QtWidgets.QMessageBox.Warning) 
         msg.setWindowIcon(QtGui.QIcon(current_dir + "\\res\\ico\\AntiVirus_ico.svg"))
 
-        msg.setInformativeText(f"A app update is avaliable. Update Now?")
+        msg.setInformativeText(f"New app release can be downloaded. Download Now?")
         msg.setText("Updater") 
                                         
                                         # setting Message box window title 
@@ -304,16 +305,17 @@ def mode(status=None):
         
     try:
 
-        __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini")
-        LatestVersion__ = __Page.content.decode('utf-8')
-        AppVersion__ = "1.3.9b"
+        __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.json")
+        LastUpdate__ = json.loads(__Page.content.decode('utf-8'))["lastupdate"]
+        LatestVersion__ = json.loads(__Page.content.decode('utf-8'))["version"]
+        AppVersion__ = "1.3.9betaTest"
     
     except:
         
         console.log(f"[red]Fetch version[white] Returned a unexpected error. Check internet connection and try again.")
         exit()
 
-    if os.path.isfile(current_dir + '/settings/dataset.ini'):
+    if os.path.isfile(current_dir + '/settings/version.json'):
         pass
         
     else:
@@ -355,6 +357,8 @@ def mode(status=None):
         
     if __updaterResult == True:
         console.log(f"[red]Module App[white] Missing update")
+        console.log(f"[blue]Release: [white]{LatestVersion__}")
+        console.log(f"[blue]Release date: [white]{LastUpdate__}")
         console.log(f"[yellow]Starting update...")
         status.stop()
         __updaterResult__ = updater("App")
@@ -2171,8 +2175,9 @@ f"image: url(res/SideBar/quarantineWHITE.svg);")
         
 
 def getDatasetVersion():
-    _dataFile = open(current_dir + '\\settings\\dataset.ini')
-    DatasetVersion__ = _dataFile.read()
+    _dataFile = open(current_dir + '/settings/version.json')
+    __fullJson = json.load(_dataFile)
+    DatasetVersion__ = __fullJson["dataset"]["version"]
     _dataFile.close()
     
     return DatasetVersion__        
@@ -2180,8 +2185,9 @@ def getDatasetVersion():
 def update(type="app"):
     DatasetVersion__ = getDatasetVersion()
     
-    __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.ini")
-    LatestVersion__ = __Page.content.decode("utf-8")
+    __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.json")
+    LastUpdate__ = json.loads(__Page.content.decode('utf-8'))["lastupdate"]
+    LatestVersion__ = json.loads(__Page.content.decode('utf-8'))["version"]
     
 
 
@@ -2194,8 +2200,8 @@ def update(type="app"):
     
     else:
         
-        __PageData = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/dataset.ini")
-        DatasetLatest__ = __PageData.content.decode("utf-8")
+        __PageData = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.json")
+        DatasetLatest__ = json.loads(__PageData.content.decode('utf-8'))["dataset"]["version"]
         
         if DatasetVersion__ == DatasetLatest__:
             return False;
