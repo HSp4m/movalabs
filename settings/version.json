@@ -14,8 +14,8 @@
         },
 
         "change": {
-            "1": "/hash/256.txt",
-            "2": "/settings/version.json"
+            "2": "/settings/version.json",
+            "3": "/movalab.py"
         },
 
         "add": {
