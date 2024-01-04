@@ -76,7 +76,7 @@ def updater(module="dataset"):
                                 extensionSplit = i.split(".")[1]
                                 
                                 
-                                console.log(f'https://raw.githubusercontent.com/HSp4m/movalabs/main/{i}')
+                                
                                 console.log(f'[yellow]Creating file: {i}')
                                 
                                 if len(createdFolders) == 0:
