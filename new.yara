@@ -3,6 +3,109 @@ import "pe"
 import "dotnet"
 import "math"
 
+rule Suspicious_PS_Strings
+{
+   meta:
+        author = "Lucas Acha (http://www.lukeacha.com)"
+        description = "observed set of strings which are likely malicious, observed with Jupyter malware. "
+        reference = "http://security5magics.blogspot.com/2020/12/tracking-jupyter-malware.html"
+        threat = "HEUR:WinPossibleThreat.powershellStrings!SUSP.gen" 
+    strings:
+        $a = "windowstyle=7" nocase
+        $b = "[system.io.file]:" nocase
+        $c = ":readallbytes" nocase
+        $d = "system.text.encoding]::" nocase
+        $e = "utf8.getstring" nocase
+        $f = "([system.convert]::" nocase
+        $g = "frombase64string" nocase
+        $h = "[system.reflection.assembly]::load" nocase
+        $i = "-bxor" nocase
+    condition:
+        6 of them
+}
+
+rule Hacktool_Strings_p0wnedShell : FILE {
+   meta:
+      description = "Detects strings found in Runspace Post Exploitation Toolkit"
+      license = "Detection Rule License 1.1 https://github.com/Neo23x0/signature-base/blob/master/LICENSE"
+      author = "Florian Roth"
+      reference = "https://github.com/Cn33liz/p0wnedShell"
+      date = "2017-01-14"
+      modified = "2023-02-10"
+      hash1 = "e1f35310192416cd79e60dba0521fc6eb107f3e65741c344832c46e9b4085e60"
+      nodeepdive = 1
+      id = "0846039d-1e00-5224-9560-55ab18034d54"
+      threat = "HEUR:WinPossibleThreat.runspacePostExploitationToolkit-STRINGS!"
+   strings:
+      $x1 = "Invoke-TokenManipulation" fullword ascii
+      $x2 = "windows/meterpreter" fullword ascii
+      $x3 = "lsadump::dcsync" fullword ascii
+      $x4 = "p0wnedShellx86" fullword ascii
+      $x5 = "p0wnedShellx64" fullword ascii
+      $x6 = "Invoke_PsExec()" fullword ascii
+      $x7 = "Invoke-Mimikatz" fullword ascii
+      $x8 = "Invoke_Shellcode()" fullword ascii
+      $x9 = "Invoke-ReflectivePEInjection" ascii
+
+      $fp1 = "Sen/tinel Labs, Inc." wide
+      $fp2 = "Copyright Elasticsearch B.V." ascii wide
+      $fp3 = "Attack Information: Invoke-Mimikatz" ascii /* Check Point help files */
+      $fp4 = "a30226 || INDICATOR-SHELLCODE Metasploit windows/meterpreter stage transfer attempt" /* snort message ID */
+      $fp5 = "use strict"
+   condition:
+      filesize < 20MB
+      and 1 of ($x*)
+      and not 1 of ($fp*)
+}
+
+rule Office_Document_with_VBA_Project
+{
+    meta:
+        author         = "InQuest Labs"
+		description    = "This signature detects an office document with an embedded VBA project. While this is fairly common it is sometimes used for malicious intent."
+        created_date   = "2022-03-15"
+        updated_date   = "2022-03-15"
+        blog_reference = "http://msdn.microsoft.com/en-us/library/office/aa201751%28v=office.10%29.aspx"
+        labs_reference = "https://labs.inquest.net/dfi/sha256/8a89a5c5dc79d4f8b8dd5007746ae36a3b005d84123b6bbc7c38637f43705023"
+        labs_pivot     = "N/A"
+        samples        = "8a89a5c5dc79d4f8b8dd5007746ae36a3b005d84123b6bbc7c38637f43705023"
+        threat = "HEUR:WinPossibleUwanted.VBAinOFFICEdocument!UDS.GEN"
+
+	strings:
+			
+		$magic1 = /^\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1\x00\x00\x00/
+		$magic2 = /^\x50\x4B\x03\x04\x14\x00\x06\x00/
+		$vba_project1 = "VBA_PROJECT" wide nocase
+		$vba_project2 = "word/vbaProject.binPK"
+	
+    condition:
+			
+		(($magic1 at 0) or ($magic2 at 0)) and any of ($vba_project*)
+
+}
+
+rule Base64_Encoded_URL
+{
+    meta:
+        author         = "InQuest Labs"
+        description    = "This signature fires on the presence of Base64 encoded URI prefixes (http:// and https://) across any file. The simple presence of such strings is not inherently an indicator of malicious content, but is worth further investigation."
+        created_date   = "2022-03-15"
+        updated_date   = "2022-03-15"
+        blog_reference = "InQuest Labs R&D"
+        labs_reference = "https://labs.inquest.net/dfi/sha256/114366bb4ef0f3414fb1309038bc645a7ab2ba006ef7dc2abffc541fcc0bb687"
+        labs_pivot     = "https://labs.inquest.net/dfi/search/alert/Base64%20Encoded%20URL"
+        samples        = "114366bb4ef0f3414fb1309038bc645a7ab2ba006ef7dc2abffc541fcc0bb687"
+        threat = "HEUR:WinPossibleThreat.base64EncodedURL!UDS.gen"
+
+	strings:
+			$httpn  = /(aHR\x30cDovL[\x2b\x2f-\x39w-z]|[\x2b\x2f-\x39A-Za-z][\x2b\x2f-\x39A-Za-z][\x31\x35\x39BFJNRVZdhlptx]odHRwOi\x38v[\x2b\x2f-\x39A-Za-z]|[\x2b\x2f-\x39A-Za-z][\x32GWm]h\x30dHA\x36Ly[\x2b\x2f\x38-\x39])/
+	$httpw  = /(aAB\x30AHQAcAA\x36AC\x38AL[\x2b\x2f-\x39w-z]|[\x2b\x2f-\x39A-Za-z][\x2b\x2f-\x39A-Za-z][\x31\x35\x39BFJNRVZdhlptx]oAHQAdABwADoALwAv[\x2b\x2f-\x39A-Za-z]|[\x2b\x2f-\x39A-Za-z][\x32GWm]gAdAB\x30AHAAOgAvAC[\x2b\x2f\x38-\x39])/
+	$httpsn = /(aHR\x30cHM\x36Ly[\x2b\x2f\x38-\x39]|[\x2b\x2f-\x39A-Za-z][\x2b\x2f-\x39A-Za-z][\x31\x35\x39BFJNRVZdhlptx]odHRwczovL[\x2b\x2f-\x39w-z]|[\x2b\x2f-\x39A-Za-z][\x32GWm]h\x30dHBzOi\x38v[\x2b\x2f-\x39A-Za-z])/
+    $httpsw = /(aAB\x30AHQAcABzADoALwAv[\x2b\x2f-\x39A-Za-z]|[\x2b\x2f-\x39A-Za-z][\x2b\x2f-\x39A-Za-z][\x31\x35\x39BFJNRVZdhlptx]oAHQAdABwAHMAOgAvAC[\x2b\x2f\x38-\x39]|[\x2b\x2f-\x39A-Za-z][\x32GWm]gAdAB\x30AHAAcwA\x36AC\x38AL[\x2b\x2f-\x39w-z])/
+	condition:
+			any of them and not (uint16be(0x0) == 0x4d5a)
+}
+
 rule Formbook {
 
     meta:
@@ -114,7 +217,7 @@ rule HKTL_Keyword_InjectDLL {
       score = 60
       hash1 = "2e7b4141e1872857904a0ef2d87535fd913cbdd9f964421f521b5a228a492a29"
       id = "422eed76-7dfa-5490-a866-d337434eaddc"
-      threat = "HEUR:Win.hacktool!DllInjection@#422eed76"
+      threat = "HEUR:Win.hacktool!DllInjection.gen"
    strings:
       $s2 = "InjectDLL" fullword ascii
       $s4 = "Kernel32.dll" fullword ascii
@@ -470,7 +573,7 @@ rule PowerShell_ISESteroids_Obfuscation {
       reference = "https://twitter.com/danielhbohannon/status/877953970437844993"
       date = "2017-06-23"
       id = "d686c4de-28fd-5d77-91d4-dde5661b75cd"
-      threat = "HEUR:Trojan.powershellObfuscation.gen"
+      threat = "HEUR:WinTrojan.powershellObfuscation.gen"
    strings:
       $x1 = "/\\/===\\__" ascii
       $x2 = "${__/\\/==" ascii
@@ -487,7 +590,7 @@ rule SUSP_Obfuscted_PowerShell_Code {
       author = "Florian Roth (Nextron Systems)"
       reference = "https://twitter.com/silv0123/status/1073072691584880640"
       id = "e2d8fc9e-ce2b-5118-8305-0d5839561d4f"
-      threat = "HEUR:Trojan.powershellObfuscation.gen"
+      threat = "HEUR:WinTrojan.powershellObfuscation.gen"
    strings:
       $s1 = "').Invoke(" ascii
       $s2 = "(\"{1}{0}\"" ascii
@@ -503,7 +606,7 @@ rule SUSP_PowerShell_Caret_Obfuscation_2 {
       reference = "Internal Research"
       date = "2019-07-20"
       id = "976e261a-029c-5703-835f-a235c5657471"
-      threat = "HEUR:Trojan.powershellObfuscation.gen"
+      threat = "HEUR:WinTrojan.powershellObfuscation.gen"
    strings:
       $r1 = /p[\^]?o[\^]?w[\^]?e[\^]?r[\^]?s[\^]?h[\^]?e[\^]?l\^l/ ascii wide nocase fullword
       $r2 = /p\^o[\^]?w[\^]?e[\^]?r[\^]?s[\^]?h[\^]?e[\^]?l[\^]?l/ ascii wide nocase fullword
@@ -519,7 +622,7 @@ rule SUSP_OBFUSC_PowerShell_True_Jun20_1 {
       date = "2020-06-27"
       score = 75
       id = "e9bb870b-ad72-57d3-beff-2f84a81490eb"
-      threat = "HEUR:Trojan.powershellObfuscation.gen"
+      threat = "HEUR:WinTrojan.powershellObfuscation.gen"
    strings:
       $ = "${t`rue}" ascii nocase
       $ = "${tr`ue}" ascii nocase
@@ -547,7 +650,7 @@ rule MalScript_Tricks
         author = "@bartblaze"
         description = "Identifies tricks often seen in malicious scripts such as moving the window off-screen or resizing it to zero."
         category = "MALWARE"
-        threat = "HEUR:Trojan.badJoke.windowResizer"
+        threat = "HEUR:WinBadJoke.windowResizer!generic"
 
     strings:
         $s1 = "window.moveTo -" ascii wide nocase
@@ -70813,7 +70916,7 @@ rule PowerShell_Susp_Parameter_Combo : HIGHVOL FILE {
       date = "2017-03-12"
       modified = "2022-09-15"
       score = 60
-      threat = "HEUR:Win.TROJAN_powershell_SUSP!PARAMETER.gen"
+      threat = "HEUR:WinPossibleThreat.badPowershellInvocation!SUSP.gen"
    strings:
       /* Encoded Command */
       $sa1 = " -enc " ascii wide nocase
@@ -72057,7 +72160,7 @@ rule potential_PyKeylogger  {
 
     meta:
         author          = "Movalabs"
-        threat          = "HEUR:Win.PYkeylogger_POTENTIAL!UDS.gen"
+        threat          = "HEUR:WinPossibleThreat.pythonKeylogger!UDS.gen"
         description     = "Detect a common keywords used in keyloggers/keyregisters"
 
     strings:
@@ -72457,7 +72560,7 @@ rule INDICATOR_SUSPICIOUS_GENRansomware {
         description = "detects command variations typically used by ransomware"
         author = "ditekSHen"
         namespace = "INDICATOR_SUSPICIOUS_GENRansomware"
-        threat = "HEUR:Win.Ransomware_SUSP!UDS.gen"
+        threat = "HEUR:WinPossibleThreat.genericRansomware!UDS.gen"
 
 
     strings:
@@ -78921,21 +79024,6 @@ rule Keylogger_CN_APT {
 		( uint16(0) == 0x5a4d and filesize < 100KB and 1 of ($x*) ) or 3 of them
 }
 
-rule SUSP_PE_Discord_Attachment_Oct21_1 {
-   meta:
-      description = "Detects suspicious executable with reference to a Discord attachment (often used for malware hosting on a legitimate FQDN)"
-      author = "Florian Roth (Nextron Systems)"
-      reference = "Internal Research"
-      date = "2021-10-12"
-      score = 70
-      threat = "not-a-virus:HEUR:probablyUwanted!DiscordAttchment"
-   strings:
-      $x1 = "https://cdn.discordapp.com/attachments/" ascii wide
-   condition:
-      uint16(0) == 0x5a4d
-      and filesize < 5000KB 
-      and 1 of them
-}
 
 
 rule SUSP_ELF_LNX_UPX_Compressed_File {
