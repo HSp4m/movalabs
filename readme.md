@@ -7,7 +7,8 @@
 - [ ] Better Ui (soon)
 ---
 
-![Static Badge](https://img.shields.io/badge/Made_with-python-yellow?style=flat&logo=python&logoColor=yellow) ![GitHub commit activity (branch)](https://img.shields.io/github/commit-activity/t/Hsp4m/movalabs) ![GitHub issues](https://img.shields.io/github/issues-raw/Hsp4m/movalabs?style=flat) ![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FHSp4m%2Fmovalabs%2Fmain%2Fsettings%2Fversion.json&query=%24.version&label=Latest%20version&color=purple)
+![Static Badge](https://img.shields.io/badge/Made_with-python-yellow?style=flat&logo=python&logoColor=yellow) ![GitHub commit activity (branch)](https://img.shields.io/github/commit-activity/t/Hsp4m/movalabs) ![GitHub issues](https://img.shields.io/github/issues-raw/Hsp4m/movalabs?style=flat) ![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FHSp4m%2Fmovalabs%2Fmain%2Fsettings%2Fversion.json&query=%24.version&label=Latest%20version&color=black) ![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FHSp4m%2Fmovalabs%2Fmain%2Fsettings%2Fversion.json&query=%24.lastupdate&label=Last%20update&color=black)
+
 
 ## How to use
 
