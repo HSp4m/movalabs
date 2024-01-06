@@ -384,10 +384,14 @@ def mode(status=None):
         
     try:
 
+        __Page2 = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.json")
+        LastUpdateDataset__ = json.loads(__Page2.content.decode('utf-8'))["dataset"]["lastupdate"]
+        LatestDatasetVersion__ = json.loads(__Page2.content.decode('utf-8'))["dataset"]["version"]
+        
         __Page = requests.get("https://raw.githubusercontent.com/HSp4m/movalabs/main/settings/version.json")
         LastUpdate__ = json.loads(__Page.content.decode('utf-8'))["lastupdate"]
         LatestVersion__ = json.loads(__Page.content.decode('utf-8'))["version"]
-        AppVersion__ = "1.4.0testImprovRelease"
+        AppVersion__ = "1.4.0r"
     
     except:
         
@@ -415,8 +419,11 @@ def mode(status=None):
     
     if __updaterDataResult == True:
         console.log(f"[red]Module Dataset[white] Missing update")
+        console.log(f"[blue]Release: [white]{LatestDatasetVersion__}")
+        console.log(f"[blue]Release date: [white]{LastUpdateDataset__}")
         console.log(f"[yellow]Starting update...")
         status.stop()
+
         __updaterResult__ = updater()
         
         if __updaterResult__ == True:
